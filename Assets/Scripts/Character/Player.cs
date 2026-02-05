@@ -10,9 +10,16 @@ public class Player : BaseCharacter
         isReady = true;
     }
 
+    void Start()
+    {
+        EventCenter.Register("UI_PlayCard", (card) => PlayCard(card as BaseCard));
+        EventCenter.Register("UI_DrawCard", (_) => UI_DrawCard());
+        EventCenter.Register("UI_EndTurn", (_) => UI_EndTurn());
+    }
+
 
     // UI：调用使用卡牌
-    public void PlayerPlayCard(BaseCard card)
+    public void UI_PlayCard(BaseCard card)
     {
         if (isReady && handCards.Contains(card) && card.ManaCost <= mana)
         {
@@ -22,16 +29,16 @@ public class Player : BaseCharacter
 
 
     // UI：调用抽卡
-    public void PlayerDrawCard(int nums = 1)
+    public void UI_DrawCard()
     {
         if (isReady)
         {
-            DrawCard(nums);
+            DrawCard();
         }
     }
 
     // UI：调用结束回合
-    public void PlayerEndTurn()
+    public void UI_EndTurn()
     {
         if (isReady)
         {

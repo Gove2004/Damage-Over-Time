@@ -15,5 +15,5 @@ public abstract class BaseCard
     /// </summary>
     /// <param name="user">使用卡牌的角色。</param>
     /// <param name="target">卡牌的目标角色。</param>
-    public abstract void Excute(BaseCharacter user, BaseCharacter target);
+    public abstract void Execute(BaseCharacter user, BaseCharacter target);
 }
