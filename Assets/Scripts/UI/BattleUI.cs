@@ -15,25 +15,53 @@ public class BattleUI : MonoBehaviour
         drawCardButton.onClick.AddListener(OnDrawCardClicked);
         playCardButton.onClick.AddListener(OnPlayCardClicked);
         endTurnButton.onClick.AddListener(OnEndTurnClicked);
+    }
 
-        
+
+    void Update()
+    {
+        // 根据当前回合状态更新按钮的可交互性
+        IsPlayerTurn();
+
+        // 快捷键
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            OnDrawCardClicked();
+        }
+        if (Input.GetKeyDown(KeyCode.W))
+        {
+            OnPlayCardClicked();
+        }
+        if (Input.GetKeyDown(KeyCode.D))
+        {
+            OnEndTurnClicked();
+        }
     }
 
     private void OnDrawCardClicked()
     {
-        Debug.Log("抽卡按钮被点击");
-        EventCenter.Publish("UI_DrawCard");
+        ((Player)BattleManager.Instance.player).UI_DrawCard();
     }
 
     private void OnPlayCardClicked()
     {
-        Debug.Log("出牌按钮被点击");
-        EventCenter.Publish("UI_PlayCard", cardList.selectedCard);
+        ((Player)BattleManager.Instance.player).UI_PlayCard(cardList.selectedCard);
     }
 
     private void OnEndTurnClicked()
     {
-        Debug.Log("结束回合按钮被点击");
-        EventCenter.Publish("UI_EndTurn");
+        ((Player)BattleManager.Instance.player).UI_EndTurn();
+    }
+
+    private void IsPlayerTurn()
+    {
+        if ((Player)BattleManager.Instance.player != null)
+        {
+            Player player = (Player)BattleManager.Instance.player;
+            bool isPlayerTurn = player.isReady;
+            drawCardButton.interactable = isPlayerTurn && player.mana >= 1 && player.Cards.Count < 7; // 限制手牌上限
+            playCardButton.interactable = isPlayerTurn && cardList.AblePlay;
+            endTurnButton.interactable = isPlayerTurn;
+        }
     }
 }

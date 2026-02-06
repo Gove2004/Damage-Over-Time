@@ -14,6 +14,7 @@ public class CardList : MonoBehaviour
     public Transform container;
 
     // 选中的卡牌
+    public bool AblePlay => selectedCard != null && ((Player)BattleManager.Instance?.player)?.mana >= selectedCard.ManaCost;
     public BaseCard selectedCard;
 
     void Start()
@@ -35,13 +36,14 @@ public class CardList : MonoBehaviour
             selectedCard = null;
         });
 
-        EventCenter.Register("UI_DrawCard", (param) =>
+        EventCenter.Register("Player_DrawCard", (param) =>
         {
-            DrawCard(CardFactory.GetRandomCard());
+            DrawCard(param as BaseCard);
         });
 
-        EventCenter.Register("UI_PlayCard", (param) =>
+        EventCenter.Register("Player_PlayCard", (param) =>
         {
+            selectedCard = null;  // 出牌后取消选中状态
             PlayCard(param as BaseCard);
         });
     }

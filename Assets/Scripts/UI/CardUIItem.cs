@@ -1,6 +1,7 @@
 
 using DG.Tweening;
 using TMPro;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -11,10 +12,13 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     public TextMeshProUGUI cardNameText;
     public TextMeshProUGUI cardDescriptionText;
     public GameObject tooltip;
+    public CanvasGroup tooltipCanvasGroup;
     public Outline outline;
+    public TextMeshProUGUI costText;
+
     public Image image;
     // Card数据
-    public BaseCard cardData = new 测试白板卡牌();
+    public BaseCard cardData = new 测试();
 
     void Awake()
     {
@@ -36,7 +40,15 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
 
         cardNameText.text = card.Name;
         cardDescriptionText.text = card.Description;
-        image.sprite = Resources.Load<Sprite>(card.ImagePath);  // 直接使用Resources.Load加载图片
+        try
+        {
+            image.sprite = Resources.Load<Sprite>(card.ImagePath);
+        }
+        catch
+        {
+            Debug.LogWarning($"无法加载卡牌图片: {card.ImagePath}");
+        }
+        costText.text = card.ManaCost.ToString();
     }
 
     #region 点击选中卡牌
@@ -81,7 +93,8 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
         sequence = DOTween.Sequence();
         sequence.Append(transform.DOScale(Vector3.one, 0.2f));
         sequence.Join(tooltip.transform.DOMoveY(tooltip.transform.position.y - 20, 0.2f));
-        
+        sequence.Join(tooltipCanvasGroup.DOFade(0, 0.2f));
+
         sequence.AppendCallback(() =>
         {
             tooltip.SetActive(false);
@@ -100,7 +113,7 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
         sequence = DOTween.Sequence();
         sequence.Append(transform.DOScale(Vector3.one * 1.1f, 0.2f));
         sequence.Join(tooltip.transform.DOMoveY(tooltip.transform.position.y + 20, 0.2f));
-        
+        sequence.Join(tooltipCanvasGroup.DOFade(1, 0.2f));
     }
     #endregion
 

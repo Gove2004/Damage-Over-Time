@@ -5,10 +5,40 @@
 /// </summary>
 public abstract class BaseCard
 {
-    public abstract string Name { get; protected set; }
-    public abstract int ManaCost { get; protected set; }
-    public abstract string Description { get; protected set; }
-    public abstract string ImagePath { get; protected set; }
+    protected abstract int id { get; }
+
+
+    public BaseCard()
+    {
+        LoadCardData();
+    }
+    
+    private void LoadCardData()
+    {
+        // 从数据库获取卡牌数据
+        var data = CardDatabase.GetCardData(id);
+        
+        if (data != null)
+        {
+            Name = data.name;
+            ManaCost = data.manaCost;
+            Description = data.effect;
+            ImagePath = data.imagePath;
+        }
+        else
+        {
+            // 设置默认值
+            Name = "未知卡牌";
+            ManaCost = 0;
+            Description = "无效果";
+            ImagePath = "卡牌/default";
+        }
+    }
+    
+    public string Name { get; private set; }
+    public int ManaCost { get; private set; }
+    public string Description { get; private set; }
+    public string ImagePath { get; private set; }
 
     /// <summary>
     /// 使用卡牌的效果

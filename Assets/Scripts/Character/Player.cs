@@ -2,6 +2,14 @@
 
 public class Player : BaseCharacter
 {
+    public Player()
+    {
+        // 初始化玩家属性
+        health = 100;
+        mana = 0;
+        autoManaPerTurn = 2;
+    }
+
 
     public bool isReady { get; set; } = false;
 
@@ -10,20 +18,48 @@ public class Player : BaseCharacter
         isReady = true;
     }
 
-    void Start()
+
+    public override void ChangeHealth(int amount)
     {
-        EventCenter.Register("UI_PlayCard", (card) => PlayCard(card as BaseCard));
-        EventCenter.Register("UI_DrawCard", (_) => UI_DrawCard());
-        EventCenter.Register("UI_EndTurn", (_) => UI_EndTurn());
+        {
+        if (amount >= 0)
+        {
+            health += amount;
+        }
+        else
+        {
+            // 先扣护盾
+            int damageToShield = UnityEngine.Mathf.Min(shiled, -amount);
+            shiled -= damageToShield;
+            amount += damageToShield; // 减去被护盾吸收的伤害
+
+            // 如果还有剩余伤害，扣血
+            if (amount < 0)
+            {
+                health += amount;  // amount是负数，所以是减法
+            }
+        }
+        if (health <= 0)
+        {
+            health = 0;
+            
+            EventCenter.Publish("PlayerDead", this);
+        }
     }
+    }
+
+
+
 
 
     // UI：调用使用卡牌
     public void UI_PlayCard(BaseCard card)
     {
-        if (isReady && handCards.Contains(card) && card.ManaCost <= mana)
+        if (isReady && Cards.Contains(card) && card.ManaCost <= mana)
         {
             PlayCard(card);
+
+            EventCenter.Publish("Player_PlayCard", card);
         }
     }
 
@@ -33,7 +69,9 @@ public class Player : BaseCharacter
     {
         if (isReady)
         {
-            DrawCard();
+            var card = DrawCard();
+
+            EventCenter.Publish("Player_DrawCard", card);
         }
     }
 
