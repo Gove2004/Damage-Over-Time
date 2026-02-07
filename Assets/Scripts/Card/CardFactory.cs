@@ -41,8 +41,10 @@ public static class CardFactory
     /// <returns></returns>
     public static BaseCard GetRandomCard()
     {
+        if (allCards.Count == 0) return null;
         int index = UnityEngine.Random.Range(0, allCards.Count);
-        return allCards[index];
+        var type = allCards[index].GetType();
+        return CreateCardInstance(type);
     }
 
     /// <summary>
@@ -56,10 +58,22 @@ public static class CardFactory
         {
             if (card.Name == cardName)
             {
-                return card;
+                return CreateCardInstance(card.GetType());
             }
         }
         return null;
+    }
+
+    private static BaseCard CreateCardInstance(System.Type type)
+    {
+        try
+        {
+            return (BaseCard)System.Activator.CreateInstance(type);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     

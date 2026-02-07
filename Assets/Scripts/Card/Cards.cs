@@ -180,14 +180,7 @@ public class 延续 : BaseCard
         {
             dot.duration += add;
         }
-        if (target != null)
-        {
-            foreach (var dot in target.dotBar)
-            {
-                dot.duration += add;
-            }
-        }
-        foreach (var card in CardFactory.GetAllCards())
+        foreach (var card in user.Cards)
         {
             card.AddDuration(add);
         }
@@ -201,7 +194,7 @@ public class 超频 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        BaseCard.ApplyOverclock(Value);
+        user.ApplyOverclock(Value);
     }
 }
 
@@ -508,7 +501,7 @@ public class 苦修 : BaseCard
         if (duration <= 0) return;
         Action<int, BaseCharacter> handler = (amount, source) =>
         {
-            if (!user.IsInTurn) return;
+            if (source != user) return;
             user.ChangeMana(value);
         };
         user.DamageTaken += handler;
@@ -582,7 +575,7 @@ public class 反伤 : BaseCard
         if (Duration <= 0) return;
         Action<int, BaseCharacter> handler = (amount, source) =>
         {
-            if (!user.IsInTurn) return;
+            if (source != user) return;
             user.ApplyHealthChange(amount, user);
             if (target != null) user.DealDamage(target, amount);
         };
@@ -600,8 +593,16 @@ public class 逃避 : BaseCard
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
         if (Duration <= 0) return;
-        user.SetImmuneThisTurn(true);
-        var dot = new Dot(user, user, Duration, d => user.SetImmuneThisTurn(true));
+        user.SetImmuneSelfDamage(true);
+        var dot = new Dot(user, user, Duration + 1, d =>
+        {
+            if (d.duration <= 1)
+            {
+                user.SetImmuneSelfDamage(false);
+                return;
+            }
+            user.SetImmuneSelfDamage(true);
+        });
         user.dotBar.Add(dot);
     }
 }

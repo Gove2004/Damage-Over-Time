@@ -14,6 +14,8 @@ public abstract class BaseCharacter
     public int autoManaPerTurn = 3;  // 每回合自动增加的法力值
     public bool IsInTurn { get; private set; }
     private bool immuneThisTurn = false;
+    private bool immuneSelfDamage = false;
+    private int overclockMultiplier = 1;
     public event Action<int, BaseCharacter> DamageTaken;
     public event Action<int, BaseCharacter> DamageDealt;
     
@@ -46,7 +48,6 @@ public abstract class BaseCharacter
     public void EndTurn()
     {
         IsInTurn = false;
-        immuneThisTurn = false;
         ChangeMana(autoManaPerTurn); // 每回合结束增加自动法力值
         EventCenter.Publish("CharacterEndedTurn");
     }
@@ -85,9 +86,15 @@ public abstract class BaseCharacter
         immuneThisTurn = value;
     }
 
+    public void SetImmuneSelfDamage(bool value)
+    {
+        immuneSelfDamage = value;
+    }
+
     public void ApplyHealthChange(int amount, BaseCharacter source = null)
     {
         if (amount < 0 && immuneThisTurn) return;
+        if (amount < 0 && source == this && immuneSelfDamage) return;
 
         ChangeHealth(amount);
 
@@ -109,14 +116,33 @@ public abstract class BaseCharacter
     {
         BaseCard newCard = CardFactory.GetRandomCard();
         if (newCard == null) return null;
+        ApplyOverclockToCard(newCard);
         Cards.Add(newCard);
         if (this is Player) EventCenter.Publish("Player_DrawCard", newCard);
         return newCard;
     }
 
+    public void ApplyOverclock(int factor)
+    {
+        if (factor == 1) return;
+        overclockMultiplier *= factor;
+        foreach (var card in Cards)
+        {
+            card.MultiplyNumbers(factor);
+        }
+    }
+
+    private void ApplyOverclockToCard(BaseCard card)
+    {
+        if (card == null) return;
+        if (overclockMultiplier == 1) return;
+        card.MultiplyNumbers(overclockMultiplier);
+    }
+
     public void GainCard(BaseCard card)
     {
         if (card == null) return;
+        ApplyOverclockToCard(card);
         Cards.Add(card);
         if (this is Player) EventCenter.Publish("Player_DrawCard", card);
     }
@@ -132,6 +158,7 @@ public abstract class BaseCharacter
 
         // 随机从牌库中抽取一张卡牌加入手牌
         BaseCard newCard = CardFactory.GetRandomCard();
+        ApplyOverclockToCard(newCard);
         Cards.Add(newCard);
 
         EventCenter.Publish("CardDrawn", newCard);

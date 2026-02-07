@@ -8,12 +8,14 @@ public class EnemyBoss : BaseCharacter
     // 这里是敌人的行动逻辑
     protected override void Action() => _ = AIAction();
 
+    public static bool AllowPlay = true;
+    public static bool AllowDraw = true;
 
     public EnemyBoss()
     {
         // 初始化敌人属性
         health = 0;
-        mana = 0;
+        mana = 3;
         autoManaPerTurn = 3;
     }
 
@@ -75,13 +77,36 @@ public class EnemyBoss : BaseCharacter
     private async Task AIAction()
     {
         await Task.Delay(1000); // 等待1秒钟再进行下一次行动
-
-        while (mana > 0)
+        while (true)
         {
-            DrawCard();
-            await Task.Delay(1000);
-        }
+            if (AllowPlay)
+            {
+                BaseCard playable = null;
+                foreach (var card in Cards)
+                {
+                    if (card.Cost <= mana)
+                    {
+                        playable = card;
+                        break;
+                    }
+                }
+                if (playable != null)
+                {
+                    PlayCard(playable);
+                    await Task.Delay(1000);
+                    continue;
+                }
+            }
 
-        EndTurn();
+            if (AllowDraw && mana > 0)
+            {
+                DrawCard();
+                await Task.Delay(1000);
+                continue;
+            }
+
+            EndTurn();
+            return;
+        }
     }
 }

@@ -6,7 +6,7 @@ public class Player : BaseCharacter
     {
         // 初始化玩家属性
         health = 100;
-        mana = 0;
+        mana = 3;
         autoManaPerTurn = 3;
     }
 

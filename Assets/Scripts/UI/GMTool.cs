@@ -6,14 +6,36 @@ public class GMTool : MonoBehaviour
     private string manaDelta = "0";
     private string cardId = "1000";
     private string message = "";
+    private bool enemyAllowPlay = true;
+    private bool enemyAllowDraw = true;
+    private bool enemyToggleInitialized = false;
+    private bool showPanel = true;
+    private Rect windowRect = new Rect(10, 10, 260, 360);
+    private const int FullHeight = 360;
+    private const int CollapsedHeight = 70;
 
     private void OnGUI()
     {
         if (BattleManager.Instance == null) return;
+        windowRect.height = showPanel ? FullHeight : CollapsedHeight;
+        windowRect = GUILayout.Window(0, windowRect, DrawWindow, "GM");
+    }
+
+    private void DrawWindow(int windowId)
+    {
         var player = BattleManager.Instance.player;
         if (player == null) return;
+        var enemy = BattleManager.Instance.enemy as EnemyBoss;
 
-        GUILayout.BeginArea(new Rect(10, 10, 260, 260), "GM", GUI.skin.window);
+        if (GUILayout.Button(showPanel ? "隐藏" : "显示"))
+        {
+            showPanel = !showPanel;
+        }
+        if (!showPanel)
+        {
+            GUI.DragWindow();
+            return;
+        }
 
         GUILayout.Label("玩家生命值调整(可负数)");
         healthDelta = GUILayout.TextField(healthDelta);
@@ -49,9 +71,9 @@ public class GMTool : MonoBehaviour
         cardId = GUILayout.TextField(cardId);
         if (GUILayout.Button("获取卡牌"))
         {
-            if (int.TryParse(cardId, out var id))
+            if (int.TryParse(cardId, out var cardIdValue))
             {
-                var data = CardDatabase.GetCardData(id);
+                var data = CardDatabase.GetCardData(cardIdValue);
                 if (data != null)
                 {
                     var card = CardFactory.GetThisCard(data.name);
@@ -72,11 +94,27 @@ public class GMTool : MonoBehaviour
             }
         }
 
+        if (enemy != null)
+        {
+            if (!enemyToggleInitialized)
+            {
+                enemyAllowPlay = EnemyBoss.AllowPlay;
+                enemyAllowDraw = EnemyBoss.AllowDraw;
+                enemyToggleInitialized = true;
+            }
+            GUILayout.Label("敌人AI开关");
+            GUILayout.BeginHorizontal();
+            enemyAllowPlay = GUILayout.Toggle(enemyAllowPlay, "用牌");
+            enemyAllowDraw = GUILayout.Toggle(enemyAllowDraw, "抽牌");
+            GUILayout.EndHorizontal();
+            EnemyBoss.AllowPlay = enemyAllowPlay;
+            EnemyBoss.AllowDraw = enemyAllowDraw;
+        }
+
         if (!string.IsNullOrEmpty(message))
         {
             GUILayout.Label(message);
         }
-
-        GUILayout.EndArea();
+        GUI.DragWindow();
     }
 }
