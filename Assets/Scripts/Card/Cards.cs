@@ -20,8 +20,10 @@ public class 流血 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        if (Duration <= 0) return;
-        var dot = new Dot(user, target, Duration, d => user.DealDamage(target, Value));
+        int duration = Duration;
+        int value = Value;
+        if (duration <= 0) return;
+        var dot = new Dot(user, target, duration, d => user.DealDamage(target, value));
         target.dotBar.Add(dot);
     }
 }
@@ -33,8 +35,10 @@ public class 恢复 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        if (Duration <= 0) return;
-        var dot = new Dot(user, user, Duration, d => user.ApplyHealthChange(Value, user));
+        int duration = Duration;
+        int value = Value;
+        if (duration <= 0) return;
+        var dot = new Dot(user, user, duration, d => user.ApplyHealthChange(value, user));
         user.dotBar.Add(dot);
     }
 }
@@ -47,8 +51,10 @@ public class 入魔 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        if (Duration <= 0) return;
-        var dot = new Dot(user, user, Duration, d => d.target.ChangeMana(Value));
+        int duration = Duration;
+        int value = Value;
+        if (duration <= 0) return;
+        var dot = new Dot(user, user, duration, d => d.target.ChangeMana(value));
         user.dotBar.Add(dot);
     }
 }
@@ -73,11 +79,13 @@ public class 吸取 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        if (Duration <= 0) return;
-        var dot = new Dot(user, target, Duration, d =>
+        int duration = Duration;
+        int value = Value;
+        if (duration <= 0) return;
+        var dot = new Dot(user, target, duration, d =>
         {
-            user.DealDamage(target, Value);
-            user.ApplyHealthChange(Value, user);
+            user.DealDamage(target, value);
+            user.ApplyHealthChange(value, user);
         });
         target.dotBar.Add(dot);
     }
@@ -106,9 +114,11 @@ public class 第7张牌 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        if (Duration <= 0) return;
-        var dotTarget = new Dot(user, target, Duration, d => user.DealDamage(target, Value));
-        var dotSelf = new Dot(user, user, Duration, d => user.DealDamage(user, Value));
+        int duration = Duration;
+        int value = Value;
+        if (duration <= 0) return;
+        var dotTarget = new Dot(user, target, duration, d => user.DealDamage(target, value));
+        var dotSelf = new Dot(user, user, duration, d => user.DealDamage(user, value));
         target.dotBar.Add(dotTarget);
         user.dotBar.Add(dotSelf);
     }
@@ -214,8 +224,10 @@ public class 疯狂 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        if (Duration <= 0) return;
-        var dot = new Dot(user, target, Duration, d => user.DealDamage(target, Value));
+        int duration = Duration;
+        int value = Value;
+        if (duration <= 0) return;
+        var dot = new Dot(user, target, duration, d => user.DealDamage(target, value));
         target.dotBar.Add(dot);
     }
 }
@@ -227,8 +239,10 @@ public class 彻底疯狂 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        if (Duration <= 0) return;
-        var dot = new Dot(user, target, Duration, d => user.DealDamage(target, Value));
+        int duration = Duration;
+        int value = Value;
+        if (duration <= 0) return;
+        var dot = new Dot(user, target, duration, d => user.DealDamage(target, value));
         target.dotBar.Add(dot);
     }
 }
@@ -241,14 +255,16 @@ public class 增援未来 : BaseCard
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
         int delay = 3;
-        var dot = new Dot(user, user, Duration + delay, d =>
+        int duration = Duration;
+        int value = Value;
+        var dot = new Dot(user, user, duration + delay, d =>
         {
             if (delay > 0)
             {
                 delay--;
                 return;
             }
-            user.shiled += Value;
+            user.shiled += value;
         });
         user.dotBar.Add(dot);
     }
@@ -297,12 +313,14 @@ public class 攻击彩票 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        if (Duration <= 0) return;
-        var dot = new Dot(user, target, Duration, d =>
+        int duration = Duration;
+        int value = Value;
+        if (duration <= 0) return;
+        var dot = new Dot(user, target, duration, d =>
         {
             if (UnityEngine.Random.Range(0, 3) == 0)
             {
-                user.DealDamage(target, Value);
+                user.DealDamage(target, value);
             }
         });
         target.dotBar.Add(dot);
@@ -316,12 +334,14 @@ public class 生命彩票 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        if (Duration <= 0) return;
-        var dot = new Dot(user, user, Duration, d =>
+        int duration = Duration;
+        int value = Value;
+        if (duration <= 0) return;
+        var dot = new Dot(user, user, duration, d =>
         {
             if (UnityEngine.Random.Range(0, 3) == 0)
             {
-                user.ApplyHealthChange(Value, user);
+                user.ApplyHealthChange(value, user);
             }
         });
         user.dotBar.Add(dot);
@@ -335,12 +355,14 @@ public class 魔力彩票 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        if (Duration <= 0) return;
-        var dot = new Dot(user, user, Duration, d =>
+        int duration = Duration;
+        int value = Value;
+        if (duration <= 0) return;
+        var dot = new Dot(user, user, duration, d =>
         {
             if (UnityEngine.Random.Range(0, 3) == 0)
             {
-                user.ChangeMana(Value);
+                user.ChangeMana(value);
             }
         });
         user.dotBar.Add(dot);
@@ -417,13 +439,15 @@ public class 偷魔 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        if (Duration <= 0) return;
-        var dot = new Dot(user, user, Duration, d =>
+        int duration = Duration;
+        int value = Value;
+        if (duration <= 0) return;
+        var dot = new Dot(user, user, duration, d =>
         {
             if (target == null) return;
             if (target.mana <= 0) return;
-            target.ChangeMana(-Value);
-            user.ChangeMana(Value);
+            target.ChangeMana(-value);
+            user.ChangeMana(value);
         });
         user.dotBar.Add(dot);
     }
@@ -436,14 +460,16 @@ public class 苦修 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        if (Duration <= 0) return;
+        int duration = Duration;
+        int value = Value;
+        if (duration <= 0) return;
         Action<int, BaseCharacter> handler = (amount, source) =>
         {
             if (!user.IsInTurn) return;
-            user.ChangeMana(Value);
+            user.ChangeMana(value);
         };
         user.DamageTaken += handler;
-        var dot = new Dot(user, user, Duration, d => { }, d => user.DamageTaken -= handler);
+        var dot = new Dot(user, user, duration, d => { }, d => user.DamageTaken -= handler);
         user.dotBar.Add(dot);
     }
 }
@@ -466,10 +492,11 @@ public class 献祭 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
+        int overclockSnapshot = OverclockMultiplier;
         if (Duration <= 0) return;
         var dot = new Dot(user, user, Duration, d =>
         {
-            int damage = CurrentDamage;
+            int damage = (1 << SacrificeCount) * overclockSnapshot;
             user.DealDamage(user, damage);
             if (target != null) user.DealDamage(target, damage);
             SacrificeCount++;
@@ -485,10 +512,12 @@ public class 卖血 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        if (Duration <= 0) return;
-        var dot = new Dot(user, user, Duration, d =>
+        int duration = Duration;
+        int value = Value;
+        if (duration <= 0) return;
+        var dot = new Dot(user, user, duration, d =>
         {
-            user.ApplyHealthChange(-Value, user);
+            user.ApplyHealthChange(-value, user);
             user.GainRandomCard();
         });
         user.dotBar.Add(dot);
