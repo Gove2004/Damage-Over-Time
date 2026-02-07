@@ -89,10 +89,10 @@ public abstract class BaseCharacter
 
     public void PlayCard(BaseCard card)
     {
-        if (Cards.Contains(card) && mana >= card.ManaCost)
+        if (Cards.Contains(card) && mana >= card.Cost)
         {
             // 扣除法力值
-            ChangeMana(-card.ManaCost);
+            ChangeMana(-card.Cost);
 
             // 使用卡牌效果
             card.Execute(this, Target);

@@ -48,7 +48,7 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
         {
             Debug.LogWarning($"无法加载卡牌图片: {card.ImagePath}");
         }
-        costText.text = card.ManaCost.ToString();
+        costText.text = card.Cost.ToString();
     }
 
     #region 点击选中卡牌

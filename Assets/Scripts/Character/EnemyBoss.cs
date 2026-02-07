@@ -82,7 +82,7 @@ public class EnemyBoss : BaseCharacter
             BaseCard cardToPlay = null;
             foreach (BaseCard card in Cards)
             {
-                if (card.ManaCost <= mana)
+                if (card.Cost <= mana)
                 {
                     cardToPlay = card;
                     break;

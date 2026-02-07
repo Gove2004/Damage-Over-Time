@@ -55,7 +55,7 @@ public class Player : BaseCharacter
     // UI：调用使用卡牌
     public void UI_PlayCard(BaseCard card)
     {
-        if (isReady && Cards.Contains(card) && card.ManaCost <= mana)
+        if (isReady && Cards.Contains(card) && card.Cost <= mana)
         {
             PlayCard(card);
 

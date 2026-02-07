@@ -14,7 +14,7 @@ public class CardList : MonoBehaviour
     public Transform container;
 
     // 选中的卡牌
-    public bool AblePlay => selectedCard != null && ((Player)BattleManager.Instance?.player)?.mana >= selectedCard.ManaCost;
+    public bool AblePlay => selectedCard != null && ((Player)BattleManager.Instance?.player)?.mana >= selectedCard.Cost;
     public BaseCard selectedCard;
 
     void Start()

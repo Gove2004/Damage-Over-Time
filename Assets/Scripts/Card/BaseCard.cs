@@ -21,7 +21,9 @@ public abstract class BaseCard
         if (data != null)
         {
             Name = data.name;
-            ManaCost = data.manaCost;
+            Cost = data.cost;
+            Value = data.value;
+            Duration = data.duration;
             Description = data.effect;
             ImagePath = data.imagePath;
         }
@@ -29,14 +31,18 @@ public abstract class BaseCard
         {
             // 设置默认值
             Name = "未知卡牌";
-            ManaCost = 0;
+            Cost = 0;
+            Value = 0;
+            Duration = 0;
             Description = "无效果";
             ImagePath = "卡牌/default";
         }
     }
     
     public string Name { get; private set; }
-    public int ManaCost { get; private set; }
+    public int Cost { get; private set; }
+    public int Value { get; private set; }
+    public int Duration { get; private set; }
     public string Description { get; private set; }
     public string ImagePath { get; private set; }
 

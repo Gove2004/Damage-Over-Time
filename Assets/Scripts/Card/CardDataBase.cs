@@ -11,7 +11,9 @@ public static class CardDatabase
     {
         public int id;
         public string name;
-        public int manaCost;
+        public int cost;
+        public int value;
+        public int duration;
         public string effect;
         public string imagePath;
         public string remark;
@@ -73,17 +75,27 @@ public static class CardDatabase
                 
                 // 解析CSV行
                 string[] fields = ParseCsvLine(line);
-                if (fields.Length < 6) continue;
+                if (fields.Length < 8) continue;
+                if (string.IsNullOrWhiteSpace(fields[0])) continue;
                 
+                int costValue = 0;
+                int valueValue = 0;
+                int durationValue = 0;
+                int.TryParse(fields[2], out costValue);
+                int.TryParse(fields[3], out valueValue);
+                int.TryParse(fields[4], out durationValue);
+
                 // 创建卡牌数据对象
                 CardData data = new CardData
                 {
                     id = int.Parse(fields[0]),
                     name = fields[1],
-                    manaCost = int.Parse(fields[2]),
-                    effect = fields[3],
-                    imagePath = fields[4],
-                    remark = fields[5]
+                    cost = costValue,
+                    value = valueValue,
+                    duration = durationValue,
+                    effect = fields[5],
+                    imagePath = fields[6],
+                    remark = fields[7]
                 };
                 
                 // 添加到字典
