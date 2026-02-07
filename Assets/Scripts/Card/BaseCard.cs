@@ -52,7 +52,12 @@ public abstract class BaseCard
         if (multiplier == 1) return;
         Cost *= multiplier;
         Value *= multiplier;
-        Duration *= multiplier;
+    }
+
+    public void AddDuration(int amount)
+    {
+        if (amount == 0) return;
+        Duration += amount;
     }
 
     public static void ResetOverclock()

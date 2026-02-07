@@ -67,7 +67,14 @@ public class 贪婪 : BaseCard
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
         if (Duration <= 0) return;
-        var dot = new Dot(user, user, Duration, d => user.GainRandomCard());
+        int drawCount = Mathf.Max(0, Value);
+        var dot = new Dot(user, user, Duration, d =>
+        {
+            for (int i = 0; i < drawCount; i++)
+            {
+                user.GainRandomCard();
+            }
+        });
         user.dotBar.Add(dot);
     }
 }
@@ -167,9 +174,22 @@ public class 延续 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
+        int add = Value;
+        if (add == 0) return;
         foreach (var dot in user.dotBar)
         {
-            dot.duration += Value;
+            dot.duration += add;
+        }
+        if (target != null)
+        {
+            foreach (var dot in target.dotBar)
+            {
+                dot.duration += add;
+            }
+        }
+        foreach (var card in CardFactory.GetAllCards())
+        {
+            card.AddDuration(add);
         }
     }
 }
@@ -193,13 +213,20 @@ public class 偷窃 : BaseCard
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
         if (Duration <= 0) return;
+        int stealCount = Mathf.Max(0, Value);
+        if (stealCount == 0) return;
         var dot = new Dot(user, user, Duration, d =>
         {
             if (target == null || target.Cards.Count == 0) return;
-            int index = UnityEngine.Random.Range(0, target.Cards.Count);
-            BaseCard stolen = target.Cards[index];
-            target.Cards.RemoveAt(index);
-            user.GainCard(stolen);
+            int count = Mathf.Min(stealCount, target.Cards.Count);
+            for (int i = 0; i < count; i++)
+            {
+                int index = UnityEngine.Random.Range(0, target.Cards.Count);
+                BaseCard stolen = target.Cards[index];
+                target.Cards.RemoveAt(index);
+                user.GainCard(stolen);
+                if (target.Cards.Count == 0) break;
+            }
         });
         user.dotBar.Add(dot);
     }
@@ -212,8 +239,12 @@ public class 结算 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        user.TriggerDotsOnce();
-        target?.TriggerDotsOnce();
+        int times = Mathf.Max(0, Value);
+        for (int i = 0; i < times; i++)
+        {
+            user.TriggerDotsOnce();
+            target?.TriggerDotsOnce();
+        }
     }
 }
 
@@ -376,9 +407,14 @@ public class 随机彩票 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
+        int count = Mathf.Max(0, Value);
+        if (count == 0) return;
         string[] names = { "攻击彩票", "生命彩票", "魔力彩票" };
-        string name = names[UnityEngine.Random.Range(0, names.Length)];
-        user.GainCard(CardFactory.GetThisCard(name));
+        for (int i = 0; i < count; i++)
+        {
+            string name = names[UnityEngine.Random.Range(0, names.Length)];
+            user.GainCard(CardFactory.GetThisCard(name));
+        }
     }
 }
 
@@ -423,12 +459,19 @@ public class 偷dot : BaseCard
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
         if (target == null || target.dotBar.Count == 0) return;
-        int index = UnityEngine.Random.Range(0, target.dotBar.Count);
-        Dot stolen = target.dotBar[index];
-        target.dotBar.RemoveAt(index);
-        stolen.source = user;
-        stolen.target = user;
-        user.dotBar.Add(stolen);
+        int stealCount = Mathf.Max(0, Value);
+        if (stealCount == 0) return;
+        int count = Mathf.Min(stealCount, target.dotBar.Count);
+        for (int i = 0; i < count; i++)
+        {
+            if (target.dotBar.Count == 0) break;
+            int index = UnityEngine.Random.Range(0, target.dotBar.Count);
+            Dot stolen = target.dotBar[index];
+            target.dotBar.RemoveAt(index);
+            stolen.source = user;
+            stolen.target = user;
+            user.dotBar.Add(stolen);
+        }
     }
 }
 
@@ -478,8 +521,9 @@ public class 苦修 : BaseCard
 public class 献祭 : BaseCard
 {
     private static int SacrificeCount = 0;
-    public static int CurrentDamage => (1 << SacrificeCount) * OverclockMultiplier;
     protected override int id => 1029;
+
+    private int CurrentDamage => Value * (1 << SacrificeCount);
 
     public override string GetDynamicDescription()
     {
@@ -492,11 +536,11 @@ public class 献祭 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        int overclockSnapshot = OverclockMultiplier;
+        int baseValue = Value;
         if (Duration <= 0) return;
         var dot = new Dot(user, user, Duration, d =>
         {
-            int damage = (1 << SacrificeCount) * overclockSnapshot;
+            int damage = baseValue * (1 << SacrificeCount);
             user.DealDamage(user, damage);
             if (target != null) user.DealDamage(target, damage);
             SacrificeCount++;
@@ -515,10 +559,14 @@ public class 卖血 : BaseCard
         int duration = Duration;
         int value = Value;
         if (duration <= 0) return;
+        int drawCount = Mathf.Max(0, value / 10);
         var dot = new Dot(user, user, duration, d =>
         {
             user.ApplyHealthChange(-value, user);
-            user.GainRandomCard();
+            for (int i = 0; i < drawCount; i++)
+            {
+                user.GainRandomCard();
+            }
         });
         user.dotBar.Add(dot);
     }
