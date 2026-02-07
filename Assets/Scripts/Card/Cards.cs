@@ -24,7 +24,7 @@ public class 流血 : BaseCard
         int value = Value;
         if (duration <= 0) return;
         var dot = new Dot(user, target, duration, d => user.DealDamage(target, value));
-        target.dotBar.Add(dot);
+        user.dotBar.Add(dot);
     }
 }
 
@@ -94,7 +94,7 @@ public class 吸取 : BaseCard
             user.DealDamage(target, value);
             user.ApplyHealthChange(value, user);
         });
-        target.dotBar.Add(dot);
+        user.dotBar.Add(dot);
     }
 }
 
@@ -110,7 +110,7 @@ public class 爆发 : BaseCard
         int damage = (int)Mathf.Pow(Value, manaSpent);
         if (Duration <= 0) return;
         var dot = new Dot(user, target, Duration, d => user.DealDamage(target, damage));
-        target.dotBar.Add(dot);
+        user.dotBar.Add(dot);
     }
 }
 
@@ -126,7 +126,7 @@ public class 第7张牌 : BaseCard
         if (duration <= 0) return;
         var dotTarget = new Dot(user, target, duration, d => user.DealDamage(target, value));
         var dotSelf = new Dot(user, user, duration, d => user.DealDamage(user, value));
-        target.dotBar.Add(dotTarget);
+        user.dotBar.Add(dotTarget);
         user.dotBar.Add(dotSelf);
     }
 }
@@ -145,7 +145,7 @@ public class 上三角 : BaseCard
             user.DealDamage(target, damage);
             damage *= 2;
         });
-        target.dotBar.Add(dot);
+        user.dotBar.Add(dot);
     }
 }
 
@@ -163,7 +163,7 @@ public class 下三角 : BaseCard
             user.DealDamage(target, damage);
             damage = Mathf.Max(0, damage / 2);
         });
-        target.dotBar.Add(dot);
+        user.dotBar.Add(dot);
     }
 }
 
@@ -259,7 +259,7 @@ public class 疯狂 : BaseCard
         int value = Value;
         if (duration <= 0) return;
         var dot = new Dot(user, target, duration, d => user.DealDamage(target, value));
-        target.dotBar.Add(dot);
+        user.dotBar.Add(dot);
     }
 }
 
@@ -274,7 +274,7 @@ public class 彻底疯狂 : BaseCard
         int value = Value;
         if (duration <= 0) return;
         var dot = new Dot(user, target, duration, d => user.DealDamage(target, value));
-        target.dotBar.Add(dot);
+        user.dotBar.Add(dot);
     }
 }
 
@@ -354,7 +354,7 @@ public class 攻击彩票 : BaseCard
                 user.DealDamage(target, value);
             }
         });
-        target.dotBar.Add(dot);
+        user.dotBar.Add(dot);
     }
 }
 
@@ -631,11 +631,14 @@ public class 制衡 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        int count = user.Cards.Count;
-        if (count <= 0) return;
+        if (user.Cards.Count <= 0) return;
+        var discardList = new System.Collections.Generic.List<BaseCard>(user.Cards);
+        discardList.Remove(this);
+        int discardCount = discardList.Count;
+        if (discardCount <= 0) return;
         if (user is Player)
         {
-            foreach (var card in new System.Collections.Generic.List<BaseCard>(user.Cards))
+            foreach (var card in discardList)
             {
                 user.Cards.Remove(card);
                 EventCenter.Publish("Player_PlayCard", card);
@@ -643,9 +646,12 @@ public class 制衡 : BaseCard
         }
         else
         {
-            user.Cards.Clear();
+            foreach (var card in discardList)
+            {
+                user.Cards.Remove(card);
+            }
         }
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < discardCount; i++)
         {
             user.GainRandomCard();
         }

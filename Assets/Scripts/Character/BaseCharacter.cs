@@ -36,8 +36,6 @@ public abstract class BaseCharacter
         IsInTurn = true;
         immuneThisTurn = false;
         shiled = 0; // 每回合开始重置护盾值
-        ChangeMana(autoManaPerTurn); // 每回合增加自动法力值
-
         ApplyDots();  // 回合开始应用所有Dot效果
 
         Action();
@@ -49,6 +47,7 @@ public abstract class BaseCharacter
     {
         IsInTurn = false;
         immuneThisTurn = false;
+        ChangeMana(autoManaPerTurn); // 每回合结束增加自动法力值
         EventCenter.Publish("CharacterEndedTurn");
     }
 

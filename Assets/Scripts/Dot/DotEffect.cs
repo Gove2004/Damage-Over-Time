@@ -24,7 +24,14 @@ public class Dot
         if (duration <= 0)
         {
             onExpire?.Invoke(this);
-            target.dotBar.Remove(this);
+            if (source != null)
+            {
+                source.dotBar.Remove(this);
+            }
+            else if (target != null)
+            {
+                target.dotBar.Remove(this);
+            }
         }
     }
 }

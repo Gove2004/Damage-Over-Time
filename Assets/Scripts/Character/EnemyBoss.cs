@@ -14,7 +14,7 @@ public class EnemyBoss : BaseCharacter
         // 初始化敌人属性
         health = 0;
         mana = 0;
-        autoManaPerTurn = 1;
+        autoManaPerTurn = 3;
     }
 
 
