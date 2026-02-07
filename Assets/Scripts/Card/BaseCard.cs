@@ -46,6 +46,14 @@ public abstract class BaseCard
     public string Description { get; private set; }
     public string ImagePath { get; private set; }
 
+    public void MultiplyNumbers(int multiplier)
+    {
+        if (multiplier == 1) return;
+        Cost *= multiplier;
+        Value *= multiplier;
+        Duration *= multiplier;
+    }
+
     /// <summary>
     /// 使用卡牌的效果
     /// </summary>

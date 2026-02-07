@@ -11,7 +11,11 @@ public abstract class BaseCharacter
     public int health = 30;
     public int mana = 0;
     public int shiled = 0; // 护盾值
-    public int autoManaPerTurn = 2;  // 每回合自动增加的法力值
+    public int autoManaPerTurn = 3;  // 每回合自动增加的法力值
+    public bool IsInTurn { get; private set; }
+    private bool immuneThisTurn = false;
+    public event Action<int, BaseCharacter> DamageTaken;
+    public event Action<int, BaseCharacter> DamageDealt;
     
     public abstract void ChangeHealth(int amount);
     
@@ -29,6 +33,8 @@ public abstract class BaseCharacter
     // 行动
     public void StartTurn()
     {
+        IsInTurn = true;
+        immuneThisTurn = false;
         shiled = 0; // 每回合开始重置护盾值
         ChangeMana(autoManaPerTurn); // 每回合增加自动法力值
 
@@ -41,32 +47,79 @@ public abstract class BaseCharacter
 
     public void EndTurn()
     {
+        IsInTurn = false;
+        immuneThisTurn = false;
         EventCenter.Publish("CharacterEndedTurn");
     }
 
 
     // DOT效果
-    public List<DotEffect> dotBar = new List<DotEffect>();
+    public List<Dot> dotBar = new List<Dot>();
     private void ApplyDots()
     {
-        foreach (var effect in new List<DotEffect>(dotBar))
+        foreach (var effect in new List<Dot>(dotBar))
         {
             effect.Apply();
         }
     }
-    public void AddDot(DotEffect dotEffect)
+    public void AddDot(Dot dotEffect)
     {
         dotBar.Add(dotEffect);
     }
-    public void RemoveDot(Func<DotEffect, bool> condition)
+    public void RemoveDot(Func<Dot, bool> condition)
     {
-        foreach (var de in new List<DotEffect>(dotBar))
+        foreach (var de in new List<Dot>(dotBar))
         {
             if (condition.Invoke(de))
             {
                 dotBar.Remove(de);
             }
         }
+    }
+    public void TriggerDotsOnce()
+    {
+        ApplyDots();
+    }
+
+    public void SetImmuneThisTurn(bool value)
+    {
+        immuneThisTurn = value;
+    }
+
+    public void ApplyHealthChange(int amount, BaseCharacter source = null)
+    {
+        if (amount < 0 && immuneThisTurn) return;
+
+        ChangeHealth(amount);
+
+        if (amount < 0)
+        {
+            int damage = -amount;
+            DamageTaken?.Invoke(damage, source);
+            source?.DamageDealt?.Invoke(damage, this);
+        }
+    }
+
+    public void DealDamage(BaseCharacter target, int amount)
+    {
+        if (target == null || amount <= 0) return;
+        target.ApplyHealthChange(-amount, this);
+    }
+
+    public BaseCard GainRandomCard()
+    {
+        BaseCard newCard = CardFactory.GetRandomCard();
+        if (newCard == null) return null;
+        Cards.Add(newCard);
+        if (this is Player) EventCenter.Publish("Player_DrawCard", newCard);
+        return newCard;
+    }
+
+    public void GainCard(BaseCard card)
+    {
+        if (card == null) return;
+        Cards.Add(card);
+        if (this is Player) EventCenter.Publish("Player_DrawCard", card);
     }
 
 

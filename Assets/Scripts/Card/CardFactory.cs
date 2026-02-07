@@ -33,6 +33,7 @@ public static class CardFactory
 
     private static List<BaseCard> allCards = new();
 
+    public static List<BaseCard> GetAllCards() => allCards;
 
     /// <summary>
     /// 随机获取一张卡牌

@@ -7,7 +7,7 @@ public class Player : BaseCharacter
         // 初始化玩家属性
         health = 100;
         mana = 0;
-        autoManaPerTurn = 2;
+        autoManaPerTurn = 3;
     }
 
 
@@ -21,31 +21,25 @@ public class Player : BaseCharacter
 
     public override void ChangeHealth(int amount)
     {
-        {
         if (amount >= 0)
         {
             health += amount;
         }
         else
         {
-            // 先扣护盾
             int damageToShield = UnityEngine.Mathf.Min(shiled, -amount);
             shiled -= damageToShield;
-            amount += damageToShield; // 减去被护盾吸收的伤害
-
-            // 如果还有剩余伤害，扣血
+            amount += damageToShield;
             if (amount < 0)
             {
-                health += amount;  // amount是负数，所以是减法
+                health += amount;
             }
         }
         if (health <= 0)
         {
             health = 0;
-            
             EventCenter.Publish("PlayerDead", this);
         }
-    }
     }
 
 
