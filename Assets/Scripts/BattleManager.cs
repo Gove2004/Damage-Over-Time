@@ -8,6 +8,10 @@ public class BattleManager : MonoBehaviour
     void Awake()
     {
         Instance = this;
+        if (GetComponent<GMTool>() == null)
+        {
+            gameObject.AddComponent<GMTool>();
+        }
     }
 
 
@@ -23,6 +27,7 @@ public class BattleManager : MonoBehaviour
 
         player = new Player();
         enemy = new EnemyBoss();
+        BaseCard.ResetOverclock();
 
         player.Target = enemy;
         enemy.Target = player;

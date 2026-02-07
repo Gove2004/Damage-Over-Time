@@ -618,7 +618,7 @@ MonoBehaviour:
   m_text: "\u7ED3\u675F\uFF08D\uFF09\n\uFF08\u56DE\u590D3\u9B54\u529B\uFF09"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: b099f735a90ec1e43b5d4e973cf7f262, type: 2}
-  m_sharedMaterial: {fileID: -5158815389218421192, guid: b099f735a90ec1e43b5d4e973cf7f262, type: 2}
+  m_sharedMaterial: {fileID: -1692076686614022402, guid: b099f735a90ec1e43b5d4e973cf7f262, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1375,7 +1375,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 800, y: 600}

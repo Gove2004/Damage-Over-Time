@@ -19,6 +19,8 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     public Image image;
     // Card数据
     public BaseCard cardData = new 测试();
+    private string lastDescription = "";
+    private int lastCost = int.MinValue;
 
     void Awake()
     {
@@ -33,13 +35,30 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
 
     }
 
+    void Update()
+    {
+        if (cardData == null) return;
+        string description = cardData.GetDynamicDescription();
+        if (description != lastDescription)
+        {
+            cardDescriptionText.text = description;
+            lastDescription = description;
+        }
+        if (cardData.Cost != lastCost)
+        {
+            costText.text = cardData.Cost.ToString();
+            lastCost = cardData.Cost;
+        }
+    }
+
 
     public void SetData(BaseCard card)
     {
         cardData = card;
 
         cardNameText.text = card.Name;
-        cardDescriptionText.text = card.Description;
+        cardDescriptionText.text = card.GetDynamicDescription();
+        lastDescription = cardDescriptionText.text;
         try
         {
             image.sprite = Resources.Load<Sprite>(card.ImagePath);
@@ -49,6 +68,7 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
             Debug.LogWarning($"无法加载卡牌图片: {card.ImagePath}");
         }
         costText.text = card.Cost.ToString();
+        lastCost = card.Cost;
     }
 
     #region 点击选中卡牌

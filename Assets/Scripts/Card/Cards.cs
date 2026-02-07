@@ -171,10 +171,7 @@ public class 超频 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        foreach (var card in CardFactory.GetAllCards())
-        {
-            card.MultiplyNumbers(Value);
-        }
+        BaseCard.ApplyOverclock(Value);
     }
 }
 
@@ -454,18 +451,28 @@ public class 苦修 : BaseCard
 
 public class 献祭 : BaseCard
 {
-    private static int SacrificeMultiplier = 1;
+    private static int SacrificeCount = 0;
+    public static int CurrentDamage => (1 << SacrificeCount) * OverclockMultiplier;
     protected override int id => 1029;
+
+    public override string GetDynamicDescription()
+    {
+        if (string.IsNullOrEmpty(Description)) return Description;
+        return Description
+            .Replace("[费用]", Cost.ToString())
+            .Replace("[数值]", CurrentDamage.ToString())
+            .Replace("[持续时间]", Duration.ToString());
+    }
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
         if (Duration <= 0) return;
-        SacrificeMultiplier *= 2;
         var dot = new Dot(user, user, Duration, d =>
         {
-            int damage = Value * SacrificeMultiplier;
+            int damage = CurrentDamage;
             user.DealDamage(user, damage);
             if (target != null) user.DealDamage(target, damage);
+            SacrificeCount++;
         });
         user.dotBar.Add(dot);
     }

@@ -10,10 +10,10 @@ public abstract class BaseCard
 
     public BaseCard()
     {
-        LoadCardData();
+        ReloadCardData();
     }
     
-    private void LoadCardData()
+    protected void ReloadCardData()
     {
         // 从数据库获取卡牌数据
         var data = CardDatabase.GetCardData(id);
@@ -45,6 +45,7 @@ public abstract class BaseCard
     public int Duration { get; private set; }
     public string Description { get; private set; }
     public string ImagePath { get; private set; }
+    public static int OverclockMultiplier { get; private set; } = 1;
 
     public void MultiplyNumbers(int multiplier)
     {
@@ -52,6 +53,34 @@ public abstract class BaseCard
         Cost *= multiplier;
         Value *= multiplier;
         Duration *= multiplier;
+    }
+
+    public static void ResetOverclock()
+    {
+        OverclockMultiplier = 1;
+        foreach (var card in CardFactory.GetAllCards())
+        {
+            card.ReloadCardData();
+        }
+    }
+
+    public static void ApplyOverclock(int factor)
+    {
+        if (factor == 1) return;
+        OverclockMultiplier *= factor;
+        foreach (var card in CardFactory.GetAllCards())
+        {
+            card.MultiplyNumbers(factor);
+        }
+    }
+
+    public virtual string GetDynamicDescription()
+    {
+        if (string.IsNullOrEmpty(Description)) return Description;
+        return Description
+            .Replace("[费用]", Cost.ToString())
+            .Replace("[数值]", Value.ToString())
+            .Replace("[持续时间]", Duration.ToString());
     }
 
     /// <summary>
