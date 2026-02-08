@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
+public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     // UI元素引用
     public TextMeshProUGUI cardNameText;
@@ -21,6 +21,9 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     public BaseCard cardData = new 测试();
     private string lastDescription = "";
     private int lastCost = int.MinValue;
+    private Vector3 originalPosition;
+    private Transform originalParent;
+    private bool dragging;
 
     void Awake()
     {
@@ -137,5 +140,42 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     }
     #endregion
 
+
+    public void OnBeginDrag(PointerEventData eventData)
+    {
+        dragging = true;
+        originalPosition = transform.position;
+        originalParent = transform.parent;
+        outline.enabled = true;
+        tooltip.SetActive(false);
+        transform.SetAsLastSibling();
+    }
+
+    public void OnDrag(PointerEventData eventData)
+    {
+        transform.position = eventData.position;
+    }
+
+    public void OnEndDrag(PointerEventData eventData)
+    {
+        dragging = false;
+        var player = BattleManager.Instance?.player as Player;
+        bool canPlay = player != null && player.isReady && cardData != null && cardData.Cost <= player.mana;
+        var containerRect = originalParent as RectTransform;
+        bool outside = true;
+        if (containerRect != null)
+        {
+            outside = !RectTransformUtility.RectangleContainsScreenPoint(containerRect, eventData.position, eventData.pressEventCamera);
+        }
+        if (canPlay && outside)
+        {
+            player.UI_PlayCard(cardData);
+        }
+        else
+        {
+            transform.DOMove(originalPosition, 0.2f);
+            outline.enabled = IsSelected;
+        }
+    }
 
 }
