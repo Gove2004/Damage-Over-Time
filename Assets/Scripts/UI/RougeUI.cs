@@ -16,6 +16,7 @@ public class RougeUI : MonoBehaviour
     private CardButton[] playerCardButtons = new CardButton[replaceNums];
 
     public Button okButton;
+    public Button cancelButton;
 
 
     // 选择的卡牌
@@ -28,8 +29,15 @@ public class RougeUI : MonoBehaviour
         okButton.onClick.AddListener(() =>
         {
             CardFactory.ReplaceCardInPlayerDeck(selectedCard, replaceIndex);
-            this.gameObject.SetActive(false);
+            HideAndReset();
         });
+        if (cancelButton != null)
+        {
+            cancelButton.onClick.AddListener(() =>
+            {
+                HideAndReset();
+            });
+        }
 
 
         Init();
@@ -62,8 +70,7 @@ public class RougeUI : MonoBehaviour
             cardButtons[i] = Instantiate(cardButtonPrefab, cardsParent).GetComponent<CardButton>();
             cardButtons[i].SetAction(() =>
             {
-                // 选择卡牌
-                selectedCard = cardButtons[index].cardData;
+                SelectCard(index);
             });
         }
         for (int i = 0; i < replaceNums; i++)
@@ -72,8 +79,7 @@ public class RougeUI : MonoBehaviour
             int index = i;  // 需要一个局部变量来捕获当前的i值
             playerCardButtons[i].SetAction(() =>
             {
-                // 选择要替换的卡牌
-                replaceIndex = index;
+                SelectReplaceIndex(index);
             });
         }
     }
@@ -81,8 +87,7 @@ public class RougeUI : MonoBehaviour
 
     public void Show()
     {
-        selectedCard = null;
-        replaceIndex = -1;
+        ClearSelectionState();
 
         
 
@@ -104,5 +109,62 @@ public class RougeUI : MonoBehaviour
         
     }
 
+    private void SelectCard(int index)
+    {
+        selectedCard = cardButtons[index].cardData;
+        for (int i = 0; i < cardButtons.Length; i++)
+        {
+            if (cardButtons[i] != null)
+            {
+                cardButtons[i].Deselected();
+            }
+        }
+        if (cardButtons[index] != null)
+        {
+            cardButtons[index].Selected();
+        }
+    }
+
+    private void SelectReplaceIndex(int index)
+    {
+        replaceIndex = index;
+        for (int i = 0; i < playerCardButtons.Length; i++)
+        {
+            if (playerCardButtons[i] != null)
+            {
+                playerCardButtons[i].Deselected();
+            }
+        }
+        if (playerCardButtons[index] != null)
+        {
+            playerCardButtons[index].Selected();
+        }
+    }
+
+    private void ClearSelectionState()
+    {
+        selectedCard = null;
+        replaceIndex = -1;
+        for (int i = 0; i < cardButtons.Length; i++)
+        {
+            if (cardButtons[i] != null)
+            {
+                cardButtons[i].Deselected();
+            }
+        }
+        for (int i = 0; i < playerCardButtons.Length; i++)
+        {
+            if (playerCardButtons[i] != null)
+            {
+                playerCardButtons[i].Deselected();
+            }
+        }
+    }
+
+    private void HideAndReset()
+    {
+        ClearSelectionState();
+        this.gameObject.SetActive(false);
+    }
 
 }
