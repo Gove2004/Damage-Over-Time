@@ -113,7 +113,7 @@ public class CardList : MonoBehaviour
             float y = fanRadius * Mathf.Cos(rad) + yCenter;
 
             item.targetPosition = new Vector2(x, y);
-            item.targetRotation = angle; 
+            item.targetRotation = -angle; // Invert rotation for correct fan tilt 
 
             // Only set sibling index if not dragging and not hovered
             if (!item.IsDragging && !item.isHovered) 
