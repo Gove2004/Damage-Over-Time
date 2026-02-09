@@ -49,6 +49,9 @@ public class EnemyBoss : BaseCharacter
                     autoManaPerTurn++;  // 每个阶段增加自动法力值
 
                     nextPhaseHealthThreshold = GetThresholdForPhase(phase);  // 更新下一阶段的生命阈值
+
+                    EventCenter.Publish("EnemyBoss_PhaseChanged", phase);
+                    Debug.Log($"进入阶段 {phase}，下一阶段阈值 {nextPhaseHealthThreshold}");
                 }
             }
         }
@@ -57,28 +60,47 @@ public class EnemyBoss : BaseCharacter
 
     private int GetThresholdForPhase(int phase)
     {
-        // 根据阶段返回不同的生命阈值
-        switch (phase)
-        {
-            case 0: return 10;
-            case 1: return 50;
-            case 2: return 100;
-            case 3: return 250;
-            case 4: return 500;
-            case 5: return 1000;
-            case 6: return 2000;
-            case 7: return 5000;
-            case 8: return 10000;
-            default: return 10000 * (int)Mathf.Pow(2, phase - 8);  // 后续阶段每次翻倍
-        }
+        // // 根据阶段返回不同的生命阈值
+        // switch (phase)
+        // {
+        //     case 0: return 10;
+        //     case 1: return 25;
+        //     case 2: return 50;
+        //     case 3: return 100;
+        //     case 4: return 250;
+        //     case 5: return 500;
+        //     case 6: return 1000;
+        //     default: return 1000 * (int)Mathf.Pow(2, phase - 6);  // 后续阶段每次翻倍
+        // }
+
+
+        return 50 * (int)Mathf.Pow(2, phase - 1);  // 姑且50一个阶段
+    }
+
+
+
+    // 假装思考一下, 至少1000ms
+    private async Task WaitRandomSeconds(int min = 1000, int max = 3000)
+    {
+        int delay = Random.Range(min, max);
+        await Task.Delay(delay);
     }
 
 
     private async Task AIAction()
     {
-        await Task.Delay(1000); // 等待1秒钟再进行下一次行动
+        await WaitRandomSeconds();
+        
         while (true)
         {
+            // 有10%概率直接结束回合, 这是负面的， 假装很智能的样子
+            if (Random.value < 0.1f)
+            {
+                EndTurn();
+                return;
+            }
+
+
             if (AllowPlay)
             {
                 BaseCard playable = null;
@@ -93,15 +115,21 @@ public class EnemyBoss : BaseCharacter
                 if (playable != null)
                 {
                     PlayCard(playable);
-                    await Task.Delay(1000);
+
+                    EventCenter.Publish("Enemy_PlayedCard", playable);
+
+                    await WaitRandomSeconds();
                     continue;
                 }
             }
 
             if (AllowDraw && mana > 0)
             {
-                DrawCard();
-                await Task.Delay(1000);
+                var card = DrawCard();
+
+                EventCenter.Publish("Enemy_DrewCard", card);
+
+                await WaitRandomSeconds();
                 continue;
             }
 

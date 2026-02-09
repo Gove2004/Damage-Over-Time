@@ -1,0 +1,108 @@
+using UnityEngine;
+using UnityEngine.UI;
+
+public class RougeUI : MonoBehaviour
+{
+    // 常量
+    private const int selNums = 3;
+    private const int replaceNums = 10;
+
+
+    public GameObject cardButtonPrefab;
+
+    public Transform cardsParent;
+    private CardButton[] cardButtons = new CardButton[selNums];
+    public Transform playerCardsParent;
+    private CardButton[] playerCardButtons = new CardButton[replaceNums];
+
+    public Button okButton;
+
+
+    // 选择的卡牌
+    private BaseCard selectedCard;
+    // 要替换的序号
+    private int replaceIndex;
+
+    void Start()
+    {
+        okButton.onClick.AddListener(() =>
+        {
+            CardFactory.ReplaceCardInPlayerDeck(selectedCard, replaceIndex);
+            this.gameObject.SetActive(false);
+        });
+
+
+        Init();
+
+
+        this.gameObject.SetActive(false);
+
+        EventCenter.Register("EnemyBoss_PhaseChanged", (param) =>
+        {
+            Debug.Log("阶段改变，显示换牌界面");
+            this.gameObject.SetActive(true);
+            Show();
+        });
+    }
+
+
+    void Update()
+    {
+        okButton.interactable = selectedCard != null && replaceIndex != -1;
+    }
+
+
+
+    private void Init()
+    {
+        // 初始化卡牌按钮
+        for (int i = 0; i < selNums; i++)
+        {
+            int index = i;  // 需要一个局部变量来捕获当前的i值
+            cardButtons[i] = Instantiate(cardButtonPrefab, cardsParent).GetComponent<CardButton>();
+            cardButtons[i].SetAction(() =>
+            {
+                // 选择卡牌
+                selectedCard = cardButtons[index].cardData;
+            });
+        }
+        for (int i = 0; i < replaceNums; i++)
+        {
+            playerCardButtons[i] = Instantiate(cardButtonPrefab, playerCardsParent).GetComponent<CardButton>();
+            int index = i;  // 需要一个局部变量来捕获当前的i值
+            playerCardButtons[i].SetAction(() =>
+            {
+                // 选择要替换的卡牌
+                replaceIndex = index;
+            });
+        }
+    }
+
+
+    public void Show()
+    {
+        selectedCard = null;
+        replaceIndex = -1;
+
+        
+
+        // 随机三个卡牌
+        for (int i = 0; i < cardButtons.Length; i++)
+        {
+            BaseCard cardData = CardFactory.GetRandomCard();
+            cardButtons[i].SetData(cardData);
+        }
+
+        // 显示玩家牌组
+        var playerDeck = CardFactory.GetPlayerDeck();
+        for (int i = 0; i < playerDeck.Count; i++)
+        {
+            BaseCard cardData = playerDeck[i];
+            playerCardButtons[i].SetData(cardData);
+        }
+
+        
+    }
+
+
+}

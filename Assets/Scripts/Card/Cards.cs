@@ -72,7 +72,7 @@ public class 贪婪 : BaseCard
         {
             for (int i = 0; i < drawCount; i++)
             {
-                user.GainRandomCard();
+                user.DrawCard(0);
             }
         });
         user.dotBar.Add(dot);
@@ -558,7 +558,7 @@ public class 卖血 : BaseCard
             user.ApplyHealthChange(-value, user);
             for (int i = 0; i < drawCount; i++)
             {
-                user.GainRandomCard();
+                user.DrawCard(0);
             }
         });
         user.dotBar.Add(dot);

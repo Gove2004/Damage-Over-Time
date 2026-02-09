@@ -37,7 +37,11 @@ public abstract class BaseCharacter
     {
         IsInTurn = true;
         immuneThisTurn = false;
-        shiled = 0; // 每回合开始重置护盾值
+
+        // shiled = 0; // 每回合开始重置护盾值
+        shiled = Mathf.Max(0, shiled-3);  // 另一个方案是每回合衰减3
+
+
         ApplyDots();  // 回合开始应用所有Dot效果
 
         Action();
@@ -112,15 +116,6 @@ public abstract class BaseCharacter
         target.ApplyHealthChange(-amount, this);
     }
 
-    public BaseCard GainRandomCard()
-    {
-        BaseCard newCard = CardFactory.GetRandomCard();
-        if (newCard == null) return null;
-        ApplyOverclockToCard(newCard);
-        Cards.Add(newCard);
-        if (this is Player) EventCenter.Publish("Player_DrawCard", newCard);
-        return newCard;
-    }
 
     public void ApplyOverclock(int factor)
     {
@@ -139,6 +134,23 @@ public abstract class BaseCharacter
         card.MultiplyNumbers(overclockMultiplier);
     }
 
+
+
+    // 卡牌逻辑
+    public List<BaseCard> Cards = new List<BaseCard>();
+
+
+    public BaseCard GainRandomCard()
+    {
+        BaseCard newCard = CardFactory.GetRandomCard();
+        if (newCard == null) return null;
+        ApplyOverclockToCard(newCard);
+        Cards.Add(newCard);
+        if (this is Player) EventCenter.Publish("Player_DrawCard", newCard);
+        return newCard;
+    }
+
+
     public void GainCard(BaseCard card)
     {
         if (card == null) return;
@@ -148,22 +160,27 @@ public abstract class BaseCharacter
     }
 
 
-    // 卡牌逻辑
-    public List<BaseCard> Cards = new List<BaseCard>();
-
-    public BaseCard DrawCard()
+    public BaseCard DrawCard(int cost = 1)
     {
-        if (mana <= 0) return null;  // 抽卡需要消耗法力值
-        ChangeMana(-1);  // 抽卡消耗1点法力值
+        if (mana < cost) return null;  // 抽卡需要消耗法力值
+        ChangeMana(-cost);  // 抽卡消耗指定点法力值
 
         // 随机从牌库中抽取一张卡牌加入手牌
-        BaseCard newCard = CardFactory.GetRandomCard();
-        ApplyOverclockToCard(newCard);
-        Cards.Add(newCard);
+        BaseCard baseCard;
+        if (this is Player)
+        {  // 玩家从牌组中抽牌
+            baseCard = CardFactory.DrawCardFromPlayerDeck();
+        }
+        else
+        {  // 敌人直接随机生成卡牌
+            baseCard = CardFactory.GetRandomCard();
+        }
+        ApplyOverclockToCard(baseCard);
+        Cards.Add(baseCard);
 
-        EventCenter.Publish("CardDrawn", newCard);
+        EventCenter.Publish("CardDrawn", baseCard);
 
-        return newCard;
+        return baseCard;
     }
 
     public void PlayCard(BaseCard card)

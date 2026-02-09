@@ -1,4 +1,5 @@
 
+using System;
 using DG.Tweening;
 using TMPro;
 using UnityEditor;
@@ -6,7 +7,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class CardButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     public bool JustUIShow = false;
     // UI元素引用
@@ -36,8 +37,13 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
 
     void Start()
     {
-
+        GetComponent<Button>().onClick.AddListener(() =>
+        {
+            action?.Invoke();
+        });
     }
+
+
 
     void Update()
     {
@@ -60,12 +66,12 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
 
     public void SetData(BaseCard card)
     {
-        cardData = card;
         if (card == null)
         {
             Debug.LogWarning("尝试设置空卡牌数据");
             return;
         }
+        cardData = card;
 
         cardNameText.text = card.Name;
         cardDescriptionText.text = card.GetDynamicDescription();
@@ -155,47 +161,9 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     #endregion
 
 
-    public void OnBeginDrag(PointerEventData eventData)
-    {
-         if (JustUIShow) return;
 
-        dragging = true;
-        originalPosition = transform.position;
-        originalParent = transform.parent;
-        outline.enabled = true;
-        tooltip.SetActive(false);
-        transform.SetAsLastSibling();
-    }
+    // 作为按钮
+    private Action action;
 
-    public void OnDrag(PointerEventData eventData)
-    {
-         if (JustUIShow) return;
-
-        transform.position = eventData.position;
-    }
-
-    public void OnEndDrag(PointerEventData eventData)
-    {
-         if (JustUIShow) return;
-
-        dragging = false;
-        var player = BattleManager.Instance?.player as Player;
-        bool canPlay = player != null && player.isReady && cardData != null && cardData.Cost <= player.mana;
-        var containerRect = originalParent as RectTransform;
-        bool outside = true;
-        if (containerRect != null)
-        {
-            outside = !RectTransformUtility.RectangleContainsScreenPoint(containerRect, eventData.position, eventData.pressEventCamera);
-        }
-        if (canPlay && outside)
-        {
-            player.UI_PlayCard(cardData);
-        }
-        else
-        {
-            transform.DOMove(originalPosition, 0.2f);
-            outline.enabled = IsSelected;
-        }
-    }
-
+    public void SetAction(Action action) { this.action = action; }
 }
