@@ -88,6 +88,12 @@ public class CardList : MonoBehaviour
             }
         }
 
+        float minSpacing = cardWidth * 1.05f;
+        if (spacing < minSpacing)
+        {
+            spacing = minSpacing;
+        }
+
         float totalWidth = (cardUIItems.Count - 1) * spacing;
         float startX = -totalWidth / 2f;
 
