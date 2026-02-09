@@ -31,6 +31,10 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     
     // Layout
     public Vector2 targetPosition;
+    public float targetRotation;
+    public Vector3 targetScale = Vector3.one;
+    public bool isHovered = false;
+
     private CardList cardList;
 
     public void Init(CardList list)
@@ -60,11 +64,33 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     {
         if (JustUIShow) return;
 
-        // Smooth movement to target position when not dragging
+        // Smooth movement and rotation
         if (!dragging)
         {
             var rect = (RectTransform)transform;
-            rect.anchoredPosition = Vector2.Lerp(rect.anchoredPosition, targetPosition, Time.deltaTime * 15f);
+            
+            Vector2 finalPos = targetPosition;
+            float finalRot = targetRotation;
+            Vector3 finalScale = targetScale;
+
+            if (isHovered)
+            {
+                finalPos.y += 80f; // Hover pop up
+                finalRot = 0f;     // Reset rotation
+                finalScale = Vector3.one * 1.5f; // Scale up
+                transform.SetAsLastSibling();
+            }
+
+            rect.anchoredPosition = Vector2.Lerp(rect.anchoredPosition, finalPos, Time.deltaTime * 15f);
+            rect.localRotation = Quaternion.Lerp(rect.localRotation, Quaternion.Euler(0, 0, finalRot), Time.deltaTime * 15f);
+            rect.localScale = Vector3.Lerp(rect.localScale, finalScale, Time.deltaTime * 15f);
+        }
+        else
+        {
+             // When dragging, reset rotation and scale slightly up
+             var rect = (RectTransform)transform;
+             rect.localRotation = Quaternion.Lerp(rect.localRotation, Quaternion.identity, Time.deltaTime * 20f);
+             rect.localScale = Vector3.Lerp(rect.localScale, Vector3.one * 1.2f, Time.deltaTime * 15f);
         }
 
         if (cardData == null) return;
@@ -143,6 +169,8 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     public void OnPointerExit(PointerEventData eventData)
     {
         if (JustUIShow) return;
+
+        isHovered = false;
         
         if (sequence.IsActive())
         {
@@ -151,7 +179,7 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
 
         var tooltipRect = (RectTransform)tooltip.transform;
         sequence = DOTween.Sequence();
-        sequence.Append(transform.DOScale(Vector3.one, 0.2f));
+        // transform scale is handled in Update
         sequence.Join(tooltipRect.DOAnchorPosY(originalTooltipAnchored.y, 0.2f));
         sequence.Join(tooltipCanvasGroup.DOFade(0, 0.2f));
 
@@ -165,6 +193,8 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     {
          if (JustUIShow) return;
 
+        isHovered = true;
+
         if (sequence.IsActive())
         {
             sequence.Kill(true);
@@ -175,7 +205,7 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
         var tooltipRect = (RectTransform)tooltip.transform;
         tooltipRect.anchoredPosition = originalTooltipAnchored;
         sequence = DOTween.Sequence();
-        sequence.Append(transform.DOScale(Vector3.one * 1.1f, 0.2f));
+        // transform scale is handled in Update
         sequence.Join(tooltipRect.DOAnchorPosY(originalTooltipAnchored.y + 20, 0.2f));
         sequence.Join(tooltipCanvasGroup.DOFade(1, 0.2f));
     }

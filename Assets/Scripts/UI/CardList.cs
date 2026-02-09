@@ -15,6 +15,11 @@ public class CardList : MonoBehaviour
     public float moveSpeed = 15f;
     public float cardWidth = 180f; // Default width, can be adjusted or auto-detected
 
+    [Header("Fan Layout Settings")]
+    public float fanRadius = 2500f;
+    public float fanAngleMax = 30f;
+    public float yOffset = -50f; // Center card y-position
+
     // 选中的卡牌
     public bool AblePlay => selectedCard != null && ((Player)BattleManager.Instance?.player)?.mana >= selectedCard.Cost;
     public BaseCard selectedCard;
@@ -27,6 +32,8 @@ public class CardList : MonoBehaviour
         {
             layoutGroup.enabled = false;
         }
+        
+        // ... (rest of Start)
 
         // 监听卡牌选择事件
         EventCenter.Register("CardSelected", (param) =>
@@ -66,52 +73,50 @@ public class CardList : MonoBehaviour
     {
         if (cardUIItems.Count == 0) return;
 
-        // 简单的水平布局计算
-        // 总宽度 = (数量 - 1) * 间距
-        // 起始 X = -总宽度 / 2
-        
-        float spacing = cardSpacing;
+        // --- Auto-detect card width ---
         if (cardUIItems.Count > 0)
         {
             var firstRect = (RectTransform)cardUIItems[0].transform;
             float w = firstRect != null ? firstRect.rect.width : cardWidth;
             if (w > 0f) cardWidth = w;
         }
-        var containerRect = container as RectTransform;
-        if (containerRect != null && cardUIItems.Count > 1)
+
+        int count = cardUIItems.Count;
+        
+        // Calculate angle per card based on spacing and radius
+        float anglePerCard = 5f; 
+        if (fanRadius > 0) 
         {
-            float availableWidth = containerRect.rect.width;
-            float maxSpacing = (availableWidth - cardWidth) / (cardUIItems.Count - 1);
-            if (maxSpacing > 0f)
-            {
-                spacing = Mathf.Min(cardSpacing, maxSpacing);
-            }
+            anglePerCard = (cardSpacing / fanRadius) * Mathf.Rad2Deg;
         }
+        anglePerCard = Mathf.Max(anglePerCard, 2f);
 
-        float minSpacing = cardWidth * 1.05f;
-        if (spacing < minSpacing)
-        {
-            spacing = minSpacing;
-        }
+        float totalAngle = (count - 1) * anglePerCard;
+        if (totalAngle > fanAngleMax) totalAngle = fanAngleMax;
 
-        float totalWidth = (cardUIItems.Count - 1) * spacing;
-        float startX = -totalWidth / 2f;
+        float yCenter = -fanRadius + yOffset;
 
-        for (int i = 0; i < cardUIItems.Count; i++)
+        for (int i = 0; i < count; i++)
         {
             CardUIItem item = cardUIItems[i];
             if (item == null) continue;
 
-            float targetX = startX + i * spacing;
-            
-            // 设置卡牌的目标位置（Y轴保持0，或者可以根据需要调整）
-            item.targetPosition = new Vector2(targetX, 0);
-            
-            // 更新卡牌的渲染层级（除了正在拖拽的）
-            // 注意：这可能会导致频繁的 SetSiblingIndex 调用，如果性能有问题可以优化
-            // 但为了保证遮挡关系正确（左边压右边或者右边压左边），通常需要排序
-            // 这里我们假设拖拽的卡牌自己会处理 SetAsLastSibling
-            if (!item.IsDragging) 
+            float t = 0.5f;
+            if (count > 1) t = (float)i / (count - 1);
+
+            // Interpolate angle from Left (negative) to Right (positive)
+            float angle = Mathf.Lerp(-totalAngle / 2f, totalAngle / 2f, t);
+            float rad = angle * Mathf.Deg2Rad;
+
+            // Calculate position on the arc
+            float x = fanRadius * Mathf.Sin(rad);
+            float y = fanRadius * Mathf.Cos(rad) + yCenter;
+
+            item.targetPosition = new Vector2(x, y);
+            item.targetRotation = angle; 
+
+            // Only set sibling index if not dragging and not hovered
+            if (!item.IsDragging && !item.isHovered) 
             {
                 item.transform.SetSiblingIndex(i);
             }
