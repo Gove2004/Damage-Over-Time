@@ -125,7 +125,7 @@ public class 第7张牌 : BaseCard
         int value = Value;
         if (duration <= 0) return;
         var dotTarget = new Dot(user, target, duration, d => user.DealDamage(target, value));
-        var dotSelf = new Dot(user, user, duration, d => user.DealDamage(user, value));
+        var dotSelf = new Dot(user, user, duration, d => user.ApplyHealthChange(value, user));
         user.dotBar.Add(dotTarget);
         user.dotBar.Add(dotSelf);
     }
@@ -288,7 +288,7 @@ public class 增援未来 : BaseCard
                 delay--;
                 return;
             }
-            user.shiled += value;
+            user.ApplyHealthChange(value, user);
         });
         user.dotBar.Add(dot);
     }
@@ -400,7 +400,8 @@ public class 随机彩票 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        int count = Mathf.Max(0, Value);
+        int maxCount = Mathf.Max(0, Value);
+        int count = UnityEngine.Random.Range(0, maxCount + 1);
         if (count == 0) return;
         string[] names = { "攻击彩票", "生命彩票", "魔力彩票" };
         for (int i = 0; i < count; i++)
@@ -418,7 +419,18 @@ public class 破甲 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        if (target != null) target.shiled = 0;
+        if (target == null) return;
+        if (Duration <= 0) return;
+        float multiplier = Mathf.Max(0, Value);
+        target.SetDamageTakenMultiplier(multiplier);
+        var dot = new Dot(user, target, Duration, d =>
+        {
+            target.SetDamageTakenMultiplier(multiplier);
+        }, d =>
+        {
+            target.SetDamageTakenMultiplier(1f);
+        });
+        user.dotBar.Add(dot);
     }
 }
 
@@ -451,20 +463,25 @@ public class 偷dot : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        if (target == null || target.dotBar.Count == 0) return;
+        if (Duration <= 0) return;
         int stealCount = Mathf.Max(0, Value);
         if (stealCount == 0) return;
-        int count = Mathf.Min(stealCount, target.dotBar.Count);
-        for (int i = 0; i < count; i++)
+        var dot = new Dot(user, user, Duration, d =>
         {
-            if (target.dotBar.Count == 0) break;
-            int index = UnityEngine.Random.Range(0, target.dotBar.Count);
-            Dot stolen = target.dotBar[index];
-            target.dotBar.RemoveAt(index);
-            stolen.source = user;
-            stolen.target = user;
-            user.dotBar.Add(stolen);
-        }
+            if (target == null || target.dotBar.Count == 0) return;
+            int count = Mathf.Min(stealCount, target.dotBar.Count);
+            for (int i = 0; i < count; i++)
+            {
+                if (target.dotBar.Count == 0) break;
+                int index = UnityEngine.Random.Range(0, target.dotBar.Count);
+                Dot stolen = target.dotBar[index];
+                target.dotBar.RemoveAt(index);
+                stolen.source = user;
+                stolen.target = user;
+                user.dotBar.Add(stolen);
+            }
+        });
+        user.dotBar.Add(dot);
     }
 }
 

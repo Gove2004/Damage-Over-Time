@@ -29,6 +29,12 @@ public class RougeUI : MonoBehaviour
         okButton.onClick.AddListener(() =>
         {
             CardFactory.ReplaceCardInPlayerDeck(selectedCard, replaceIndex);
+            var player = BattleManager.Instance != null ? BattleManager.Instance.player as Player : null;
+            if (player != null && selectedCard != null)
+            {
+                var handCard = CardFactory.GetThisCard(selectedCard.Name);
+                player.GainCard(handCard != null ? handCard : selectedCard);
+            }
             HideAndReset();
         });
         if (cancelButton != null)
@@ -87,6 +93,7 @@ public class RougeUI : MonoBehaviour
 
     public void Show()
     {
+        Time.timeScale = 0f;
         ClearSelectionState();
 
         
@@ -163,6 +170,7 @@ public class RougeUI : MonoBehaviour
 
     private void HideAndReset()
     {
+        Time.timeScale = 1f;
         ClearSelectionState();
         this.gameObject.SetActive(false);
     }

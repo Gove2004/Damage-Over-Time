@@ -83,15 +83,42 @@ public static class CardFactory
         return CreateCardInstance(type);
     }
 
+    /// <summary>
+    /// 随机获取一张敌人可用的卡牌（排除偷窃、回血、无敌类）
+    /// </summary>
+    /// <returns></returns>
+    public static BaseCard GetRandomEnemyCard()
+    {
+        if (allCards.Count == 0) return null;
+        
+        // 定义黑名单（偷窃、回血、无敌）
+        // 偷窃类: 偷窃, 偷dot, 偷魔
+        // 回血类: 恢复, 吸取, 生命彩票, 反伤, 吸血
+        // 无敌类: 无敌金身
+        var bannedCards = new HashSet<string> 
+        { 
+            "偷窃", "偷月", "偷魔", 
+            "恢复", "吸取", "生命彩票", "反伤", "吸血",
+            "无敌金身"
+        };
+
+        var validCards = allCards.FindAll(c => !bannedCards.Contains(c.Name));
+        
+        if (validCards.Count == 0) return null;
+
+        int index = UnityEngine.Random.Range(0, validCards.Count);
+        var type = validCards[index].GetType();
+        return CreateCardInstance(type);
+    }
+
 
 
 
     // 这是玩家的牌组, 是一个权重字典
     private static List<BaseCard> playerDeck = new()
     {
-        new 测试(), new 测试(), 
-        new 流血(), new 流血(), new 流血(),
-        new 恢复(), new 恢复(), new 恢复(),
+        new 流血(), new 流血(), new 流血(), new 流血(),
+        new 恢复(), new 恢复(), new 恢复(), new 恢复(),
         new 入魔(), new 入魔()
     };
 

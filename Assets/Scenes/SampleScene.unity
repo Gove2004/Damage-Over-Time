@@ -2334,6 +2334,9 @@ MonoBehaviour:
   cardSpacing: 100
   moveSpeed: 15
   cardWidth: 180
+  fanRadius: 2500
+  fanAngleMax: 30
+  yOffset: -50
 --- !u!1001 &1188311018
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class BattleUI : MonoBehaviour
 {
@@ -8,6 +9,9 @@ public class BattleUI : MonoBehaviour
     public Button playCardButton;
     public Button endTurnButton;
 
+    private TextMeshProUGUI endTurnButtonText;
+    private int lastAutoMana = -1;
+
     public CardList cardList;
 
     void Start()
@@ -15,6 +19,8 @@ public class BattleUI : MonoBehaviour
         drawCardButton.onClick.AddListener(OnDrawCardClicked);
         playCardButton.onClick.AddListener(OnPlayCardClicked);
         endTurnButton.onClick.AddListener(OnEndTurnClicked);
+
+        endTurnButtonText = endTurnButton.GetComponentInChildren<TextMeshProUGUI>();
     }
 
 
@@ -62,6 +68,15 @@ public class BattleUI : MonoBehaviour
             drawCardButton.interactable = isPlayerTurn && player.mana >= 1 && player.Cards.Count < 7; // 限制手牌上限
             playCardButton.interactable = isPlayerTurn && cardList.AblePlay;
             endTurnButton.interactable = isPlayerTurn;
+
+            if (player.autoManaPerTurn != lastAutoMana)
+            {
+                lastAutoMana = player.autoManaPerTurn;
+                if (endTurnButtonText != null)
+                {
+                    endTurnButtonText.text = $"结束（D）\n(回复{lastAutoMana}魔力)";
+                }
+            }
         }
     }
 }
