@@ -22,12 +22,26 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     public BaseCard cardData = new 测试();
     private string lastDescription = "";
     private int lastCost = int.MinValue;
-    private Vector3 originalPosition;
-    private Transform originalParent;
+    
     private bool dragging;
+    public bool IsDragging => dragging; // Public property for CardList to access
+    
+    private Vector2 dragOffset;
+    private Vector2 originalTooltipAnchored;
+    
+    // Layout
+    public Vector2 targetPosition;
+    private CardList cardList;
+
+    public void Init(CardList list)
+    {
+        this.cardList = list;
+    }
 
     void Awake()
     {
+        var tooltipRect = (RectTransform)tooltip.transform;
+        originalTooltipAnchored = tooltipRect.anchoredPosition;
         tooltip.SetActive(false);
         outline.enabled = false;
 
@@ -36,12 +50,22 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
 
     void Start()
     {
-
+        if (cardList == null)
+        {
+            cardList = GetComponentInParent<CardList>();
+        }
     }
 
     void Update()
     {
         if (JustUIShow) return;
+
+        // Smooth movement to target position when not dragging
+        if (!dragging)
+        {
+            var rect = (RectTransform)transform;
+            rect.anchoredPosition = Vector2.Lerp(rect.anchoredPosition, targetPosition, Time.deltaTime * 15f);
+        }
 
         if (cardData == null) return;
         string description = cardData.GetDynamicDescription();
@@ -125,9 +149,10 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
             sequence.Kill(true);
         }
 
+        var tooltipRect = (RectTransform)tooltip.transform;
         sequence = DOTween.Sequence();
         sequence.Append(transform.DOScale(Vector3.one, 0.2f));
-        sequence.Join(tooltip.transform.DOMoveY(tooltip.transform.position.y - 20, 0.2f));
+        sequence.Join(tooltipRect.DOAnchorPosY(originalTooltipAnchored.y, 0.2f));
         sequence.Join(tooltipCanvasGroup.DOFade(0, 0.2f));
 
         sequence.AppendCallback(() =>
@@ -147,9 +172,11 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
 
         tooltip.SetActive(true);
 
+        var tooltipRect = (RectTransform)tooltip.transform;
+        tooltipRect.anchoredPosition = originalTooltipAnchored;
         sequence = DOTween.Sequence();
         sequence.Append(transform.DOScale(Vector3.one * 1.1f, 0.2f));
-        sequence.Join(tooltip.transform.DOMoveY(tooltip.transform.position.y + 20, 0.2f));
+        sequence.Join(tooltipRect.DOAnchorPosY(originalTooltipAnchored.y + 20, 0.2f));
         sequence.Join(tooltipCanvasGroup.DOFade(1, 0.2f));
     }
     #endregion
@@ -160,18 +187,52 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
          if (JustUIShow) return;
 
         dragging = true;
-        originalPosition = transform.position;
-        originalParent = transform.parent;
+        var rect = (RectTransform)transform;
+        
+        // Remove old layout/placeholder logic
+        
         outline.enabled = true;
         tooltip.SetActive(false);
+        ((RectTransform)tooltip.transform).anchoredPosition = originalTooltipAnchored;
+        
+        // Ensure dragged card renders on top
         transform.SetAsLastSibling();
+        
+        var parentRect = transform.parent as RectTransform;
+        if (parentRect != null)
+        {
+            Vector2 localPoint;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(parentRect, eventData.position, eventData.pressEventCamera, out localPoint);
+            dragOffset = rect.anchoredPosition - localPoint;
+        }
+        else
+        {
+            dragOffset = Vector2.zero;
+        }
     }
 
     public void OnDrag(PointerEventData eventData)
     {
          if (JustUIShow) return;
 
-        transform.position = eventData.position;
+        var rect = (RectTransform)transform;
+        var parentRect = transform.parent as RectTransform;
+        if (parentRect != null)
+        {
+            Vector2 localPoint;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(parentRect, eventData.position, eventData.pressEventCamera, out localPoint);
+            rect.anchoredPosition = localPoint + dragOffset;
+            
+            // Notify layout system
+            if (cardList != null)
+            {
+                cardList.OnCardDrag(this);
+            }
+        }
+        else
+        {
+            transform.position = eventData.position;
+        }
     }
 
     public void OnEndDrag(PointerEventData eventData)
@@ -181,19 +242,37 @@ public class CardUIItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
         dragging = false;
         var player = BattleManager.Instance?.player as Player;
         bool canPlay = player != null && player.isReady && cardData != null && cardData.Cost <= player.mana;
-        var containerRect = originalParent as RectTransform;
-        bool outside = true;
-        if (containerRect != null)
+        
+        // Improved validation: Check if card is dragged high enough (e.g., > 150 pixels above original position or specific screen Y threshold)
+        // Using a threshold relative to screen height is often safer for different resolutions.
+        // Let's assume the hand area is at the bottom. We require the drag to be significantly upwards.
+        
+        bool draggedOut = false;
+        
+        // Option 1: Check distance from original position (vertical only)
+        // if (transform.position.y - originalParent.position.y > 200) ... 
+        
+        // Option 2: Check absolute screen Y position. 
+        // Assuming hand is at bottom, let's say it needs to be in the top 3/4 of the screen or above a certain line.
+        float playThresholdY = Screen.height * 0.5f; // Must be above bottom 30% of screen
+        
+        if (eventData.position.y > playThresholdY)
         {
-            outside = !RectTransformUtility.RectangleContainsScreenPoint(containerRect, eventData.position, eventData.pressEventCamera);
+            draggedOut = true;
         }
-        if (canPlay && outside)
+
+        // Also respect the container check if needed, but Y threshold is usually better for "playing" cards.
+        // Alternatively, use the old check BUT with a buffer? 
+        // The user complained "once dragged... cannot cancel". This implies existing check is too loose (draggedOut is true too easily).
+        // By adding a Y threshold, we ensure they must drag UP, not just wiggle left/right.
+
+        if (canPlay && draggedOut)
         {
             player.UI_PlayCard(cardData);
         }
         else
         {
-            transform.DOMove(originalPosition, 0.2f);
+            // Just let the update loop handle the return animation
             outline.enabled = IsSelected;
         }
     }
