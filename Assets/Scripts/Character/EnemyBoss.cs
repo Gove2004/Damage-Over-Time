@@ -83,7 +83,17 @@ public class EnemyBoss : BaseCharacter
     private async Task WaitRandomSeconds(int min = 1000, int max = 3000)
     {
         int delay = Random.Range(min, max);
-        await Task.Delay(delay);
+        float duration = delay / 1000f;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            if (Time.timeScale > 0)
+            {
+                elapsed += Time.deltaTime;
+            }
+            await Task.Yield();
+        }
     }
 
 

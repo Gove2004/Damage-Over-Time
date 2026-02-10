@@ -132,6 +132,7 @@ public class CardButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
         }
 
         sequence = DOTween.Sequence();
+        sequence.SetUpdate(true);
         sequence.Append(transform.DOScale(Vector3.one, 0.2f));
         sequence.Join(tooltip.transform.DOMoveY(tooltip.transform.position.y - 20, 0.2f));
         sequence.Join(tooltipCanvasGroup.DOFade(0, 0.2f));
@@ -154,6 +155,7 @@ public class CardButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
         tooltip.SetActive(true);
 
         sequence = DOTween.Sequence();
+        sequence.SetUpdate(true);
         sequence.Append(transform.DOScale(Vector3.one * 1.1f, 0.2f));
         sequence.Join(tooltip.transform.DOMoveY(tooltip.transform.position.y + 20, 0.2f));
         sequence.Join(tooltipCanvasGroup.DOFade(1, 0.2f));

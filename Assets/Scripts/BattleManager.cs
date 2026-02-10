@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using UnityEngine;
 
@@ -18,12 +19,16 @@ public class BattleManager : MonoBehaviour
     public BaseCharacter player;
     public BaseCharacter enemy;
     private int currentTurn = 1;
+    private Action onPhaseChangedUnsub;
 
 
     public void StartBattle()
     {
         Debug.Log("战斗开始！");
         currentTurn = 0;
+
+        // 清理旧的事件监听
+        onPhaseChangedUnsub?.Invoke();
 
         player = new Player();
         enemy = new EnemyBoss();
@@ -38,6 +43,16 @@ public class BattleManager : MonoBehaviour
         enemy.ChangeHealth(0);  // 触发UI更新
 
         EventCenter.Publish("BattleStarted");
+
+        // 注册阶段变化监听
+        onPhaseChangedUnsub = EventCenter.Register("EnemyBoss_PhaseChanged", (param) =>
+        {
+            if (player != null)
+            {
+                player.autoManaPerTurn++;
+                Debug.Log($"阶段提升，玩家每回合自动回蓝增加至: {player.autoManaPerTurn}");
+            }
+        });
 
         EventCenter.Register("PlayerDead", (param) =>
         {
@@ -92,5 +107,10 @@ public class BattleManager : MonoBehaviour
         {
             StartBattle();
         }
+    }
+
+    void OnDestroy()
+    {
+        onPhaseChangedUnsub?.Invoke();
     }
 }

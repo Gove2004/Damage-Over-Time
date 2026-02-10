@@ -16,6 +16,8 @@ public abstract class BaseCharacter
     private bool immuneThisTurn = false;
     private bool immuneSelfDamage = false;
     private int overclockMultiplier = 1;
+    protected int extraCardDuration = 0;
+    private float damageTakenMultiplier = 1f;
     public event Action<int, BaseCharacter> DamageTaken;
     public event Action<int, BaseCharacter> DamageDealt;
     
@@ -43,6 +45,8 @@ public abstract class BaseCharacter
 
 
         ApplyDots();  // 回合开始应用所有Dot效果
+
+        if (!IsInTurn) return;
 
         Action();
     }
@@ -95,10 +99,23 @@ public abstract class BaseCharacter
         immuneSelfDamage = value;
     }
 
+    public void SetDamageTakenMultiplier(float multiplier)
+    {
+        damageTakenMultiplier = Mathf.Max(0f, multiplier);
+    }
+
     public void ApplyHealthChange(int amount, BaseCharacter source = null)
     {
         if (amount < 0 && immuneThisTurn) return;
         if (amount < 0 && source == this && immuneSelfDamage) return;
+
+        if (amount < 0 && damageTakenMultiplier != 1f)
+        {
+            int damage = -amount;
+            damage = Mathf.RoundToInt(damage * damageTakenMultiplier);
+            if (damage <= 0) return;
+            amount = -damage;
+        }
 
         ChangeHealth(amount);
 
@@ -127,11 +144,23 @@ public abstract class BaseCharacter
         }
     }
 
-    private void ApplyOverclockToCard(BaseCard card)
+    public void AddGlobalDurationBonus(int amount)
+    {
+        if (amount == 0) return;
+        extraCardDuration += amount;
+    }
+
+    private void ApplyBuffsToCard(BaseCard card)
     {
         if (card == null) return;
-        if (overclockMultiplier == 1) return;
-        card.MultiplyNumbers(overclockMultiplier);
+        if (overclockMultiplier != 1)
+        {
+            card.MultiplyNumbers(overclockMultiplier);
+        }
+        if (extraCardDuration != 0)
+        {
+            card.AddDuration(extraCardDuration);
+        }
     }
 
 
@@ -144,17 +173,20 @@ public abstract class BaseCharacter
     {
         BaseCard newCard = CardFactory.GetRandomCard();
         if (newCard == null) return null;
-        ApplyOverclockToCard(newCard);
+        ApplyBuffsToCard(newCard);
         Cards.Add(newCard);
         if (this is Player) EventCenter.Publish("Player_DrawCard", newCard);
         return newCard;
     }
 
-
+    /// <summary>
+    /// 获取指定卡牌（不走抽牌逻辑）
+    /// </summary>
+    /// <param name="card"></param>
     public void GainCard(BaseCard card)
     {
         if (card == null) return;
-        ApplyOverclockToCard(card);
+        ApplyBuffsToCard(card);
         Cards.Add(card);
         if (this is Player) EventCenter.Publish("Player_DrawCard", card);
     }
@@ -173,9 +205,9 @@ public abstract class BaseCharacter
         }
         else
         {  // 敌人直接随机生成卡牌
-            baseCard = CardFactory.GetRandomCard();
+            baseCard = CardFactory.GetRandomEnemyCard();
         }
-        ApplyOverclockToCard(baseCard);
+        ApplyBuffsToCard(baseCard);
         Cards.Add(baseCard);
 
         EventCenter.Publish("CardDrawn", baseCard);

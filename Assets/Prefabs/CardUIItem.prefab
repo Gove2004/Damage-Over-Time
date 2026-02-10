@@ -213,11 +213,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 4235535861988431151}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 0, y: 25}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: -20}
   m_SizeDelta: {x: 0, y: 50}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_Pivot: {x: 0.5, y: 1}
 --- !u!222 &7373005555292981623
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -726,6 +726,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5acce6c6ca02da44bdec92f22b9c6a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  JustUIShow: 0
   cardNameText: {fileID: 678266586213721595}
   cardDescriptionText: {fileID: 6742121481141718004}
   tooltip: {fileID: 2380085927602836780}
@@ -733,6 +734,10 @@ MonoBehaviour:
   outline: {fileID: 8061279033865398848}
   costText: {fileID: 8055922837101346562}
   image: {fileID: 2108114058298064635}
+  targetPosition: {x: 0, y: 0}
+  targetRotation: 0
+  targetScale: {x: 1, y: 1, z: 1}
+  isHovered: 0
   IsSelected: 0
 --- !u!114 &6384342644660755081
 MonoBehaviour:

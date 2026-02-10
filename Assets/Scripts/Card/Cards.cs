@@ -124,10 +124,127 @@ public class 第7张牌 : BaseCard
         int duration = Duration;
         int value = Value;
         if (duration <= 0) return;
-        var dotTarget = new Dot(user, target, duration, d => user.DealDamage(target, value));
-        var dotSelf = new Dot(user, user, duration, d => user.DealDamage(user, value));
-        user.dotBar.Add(dotTarget);
-        user.dotBar.Add(dotSelf);
+        if (value < 0) value = 0;
+        var dot = new Dot(user, target, duration, d =>
+        {
+            int effectIndex = UnityEngine.Random.Range(0, 7);
+            if (effectIndex == 0)
+            {
+                int damage = value * 11;
+                if (UnityEngine.Random.value < 0.77f)
+                {
+                    damage *= 2;
+                    if (UnityEngine.Random.value < 0.77f)
+                    {
+                        damage = Mathf.Max(0, value / 7);
+                    }
+                }
+                user.DealDamage(target, damage);
+            }
+            else if (effectIndex == 1)
+            {
+                user.SetImmuneThisTurn(true);
+            }
+            else if (effectIndex == 2)
+            {
+                int stealCount = Mathf.Max(0, value);
+                for (int i = 0; i < stealCount; i++)
+                {
+                    bool stolen = false;
+                    for (int attempt = 0; attempt < 3 && !stolen; attempt++)
+                    {
+                        int pick = UnityEngine.Random.Range(0, 3);
+                        if (pick == 0)
+                        {
+                            if (target != null && target.Cards.Count > 0)
+                            {
+                                int index = UnityEngine.Random.Range(0, target.Cards.Count);
+                                BaseCard stolenCard = target.Cards[index];
+                                target.Cards.RemoveAt(index);
+                                user.GainCard(stolenCard);
+                                stolen = true;
+                            }
+                        }
+                        else if (pick == 1)
+                        {
+                            if (target != null && target.dotBar.Count > 0)
+                            {
+                                int index = UnityEngine.Random.Range(0, target.dotBar.Count);
+                                Dot stolenDot = target.dotBar[index];
+                                target.dotBar.RemoveAt(index);
+                                stolenDot.source = user;
+                                stolenDot.target = user;
+                                user.dotBar.Add(stolenDot);
+                                stolen = true;
+                            }
+                        }
+                        else
+                        {
+                            if (target != null && target.mana > 0)
+                            {
+                                target.ChangeMana(-1);
+                                user.ChangeMana(1);
+                                stolen = true;
+                            }
+                        }
+                    }
+                    if (!stolen) break;
+                }
+            }
+            else if (effectIndex == 3)
+            {
+                user.ChangeMana(value);
+                if (user.Cards.Count > 0)
+                {
+                    if (user is Player)
+                    {
+                        var discardList = new System.Collections.Generic.List<BaseCard>(user.Cards);
+                        foreach (var card in discardList)
+                        {
+                            user.Cards.Remove(card);
+                            EventCenter.Publish("Player_PlayCard", card);
+                        }
+                    }
+                    else
+                    {
+                        user.Cards.Clear();
+                    }
+                }
+            }
+            else if (effectIndex == 4)
+            {
+                int count = Mathf.Max(0, value);
+                for (int i = 0; i < count; i++)
+                {
+                    user.GainRandomCard();
+                }
+                user.EndTurn();
+            }
+            else if (effectIndex == 5)
+            {
+                int add = Mathf.Max(0, value);
+                if (add > 0)
+                {
+                    foreach (var otherDot in user.dotBar)
+                    {
+                        if (otherDot != d)
+                        {
+                            otherDot.duration += add;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                int heal = value * 11;
+                if (UnityEngine.Random.value < 0.07f)
+                {
+                    heal = Mathf.Max(0, value / 7);
+                }
+                user.ApplyHealthChange(heal, user);
+            }
+        });
+        user.dotBar.Add(dot);
     }
 }
 
@@ -266,7 +383,12 @@ public class 彻底疯狂 : BaseCard
         int duration = Duration;
         int value = Value;
         if (duration <= 0) return;
-        var dot = new Dot(user, target, duration, d => user.DealDamage(target, value));
+        int actualDuration = UnityEngine.Random.Range(1, duration + 1);
+        var dot = new Dot(user, target, actualDuration, d =>
+        {
+            int damage = UnityEngine.Random.Range(0, value + 1);
+            user.DealDamage(target, damage);
+        });
         user.dotBar.Add(dot);
     }
 }
@@ -288,7 +410,7 @@ public class 增援未来 : BaseCard
                 delay--;
                 return;
             }
-            user.shiled += value;
+            user.ApplyHealthChange(value, user);
         });
         user.dotBar.Add(dot);
     }
@@ -400,7 +522,8 @@ public class 随机彩票 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        int count = Mathf.Max(0, Value);
+        int maxCount = Mathf.Max(0, Value);
+        int count = UnityEngine.Random.Range(0, maxCount + 1);
         if (count == 0) return;
         string[] names = { "攻击彩票", "生命彩票", "魔力彩票" };
         for (int i = 0; i < count; i++)
@@ -418,7 +541,18 @@ public class 破甲 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        if (target != null) target.shiled = 0;
+        if (target == null) return;
+        if (Duration <= 0) return;
+        float multiplier = Mathf.Max(0, Value);
+        target.SetDamageTakenMultiplier(multiplier);
+        var dot = new Dot(user, target, Duration, d =>
+        {
+            target.SetDamageTakenMultiplier(multiplier);
+        }, d =>
+        {
+            target.SetDamageTakenMultiplier(1f);
+        });
+        user.dotBar.Add(dot);
     }
 }
 
@@ -451,20 +585,25 @@ public class 偷dot : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        if (target == null || target.dotBar.Count == 0) return;
+        if (Duration <= 0) return;
         int stealCount = Mathf.Max(0, Value);
         if (stealCount == 0) return;
-        int count = Mathf.Min(stealCount, target.dotBar.Count);
-        for (int i = 0; i < count; i++)
+        var dot = new Dot(user, user, Duration, d =>
         {
-            if (target.dotBar.Count == 0) break;
-            int index = UnityEngine.Random.Range(0, target.dotBar.Count);
-            Dot stolen = target.dotBar[index];
-            target.dotBar.RemoveAt(index);
-            stolen.source = user;
-            stolen.target = user;
-            user.dotBar.Add(stolen);
-        }
+            if (target == null || target.dotBar.Count == 0) return;
+            int count = Mathf.Min(stealCount, target.dotBar.Count);
+            for (int i = 0; i < count; i++)
+            {
+                if (target.dotBar.Count == 0) break;
+                int index = UnityEngine.Random.Range(0, target.dotBar.Count);
+                Dot stolen = target.dotBar[index];
+                target.dotBar.RemoveAt(index);
+                stolen.source = user;
+                stolen.target = user;
+                user.dotBar.Add(stolen);
+            }
+        });
+        user.dotBar.Add(dot);
     }
 }
 
