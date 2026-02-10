@@ -46,6 +46,8 @@ public abstract class BaseCharacter
 
         ApplyDots();  // 回合开始应用所有Dot效果
 
+        if (!IsInTurn) return;
+
         Action();
     }
 
