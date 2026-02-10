@@ -20,7 +20,7 @@ public class CardButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
 
     public Image image;
     // Card数据
-    public BaseCard cardData = new 测试();
+    public BaseCard cardData = new 抽牌();
     private string lastDescription = "";
     private int lastCost = int.MinValue;
     private Vector3 originalPosition;

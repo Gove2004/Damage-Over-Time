@@ -2,13 +2,22 @@ using System;
 using UnityEngine;
 
 
-public class 测试: BaseCard
+public class 抽牌 : BaseCard
 {
     protected override int id => 1000;
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        Debug.Log("测试白板卡牌被使用了！");
+        int count = Value;
+        if (count <= 0) return;
+        for (int i = 0; i < count; i++)
+        {
+            var card = user.DrawCard(0);
+            if (card != null && user is Player)
+            {
+                EventCenter.Publish("Player_DrawCard", card);
+            }
+        }
     }
 }
 
@@ -116,11 +125,12 @@ public class 爆发 : BaseCard
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
         int manaSpent = user.mana;
+        if (manaSpent <= 0) return;
         user.ChangeMana(-manaSpent);
-        int damage = (int)Mathf.Pow(Value, manaSpent);
-        if (Duration <= 0) return;
+        int damage = manaSpent * Value;
+        int duration = manaSpent;
         Dot dot = null;
-        dot = new Dot(user, target, Duration, d => user.DealDamage(target, damage), null, () => $"每回合造成{damage}点伤害，剩余{dot.duration}回合");
+        dot = new Dot(user, target, duration, d => user.DealDamage(target, damage), null, () => $"每回合造成{damage}点伤害，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -268,13 +278,15 @@ public class 上三角 : BaseCard
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
         if (Duration <= 0) return;
-        int damage = Value;
+        int baseValue = Value;
+        int timer = 0;
         Dot dot = null;
         dot = new Dot(user, target, Duration, d =>
         {
+            timer++;
+            int damage = Mathf.Max(0, baseValue * timer);
             user.DealDamage(target, damage);
-            damage *= 2;
-        }, null, () => $"每回合对敌人造成{damage}点伤害并使此伤害值翻倍，剩余{dot.duration}回合");
+        }, null, () => $"每回合对敌人造成{baseValue}×{timer}点伤害，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -325,7 +337,7 @@ public class 超频 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        user.ApplyOverclock(Value);
+        user.ApplyOverclock(2);
     }
 }
 
@@ -678,10 +690,10 @@ public class 苦修 : BaseCard
 
 public class 献祭 : BaseCard
 {
-    private static int SacrificeCount = 0;
+    private static int SacrificeBonus = 0;
     protected override int id => 1029;
 
-    private int CurrentDamage => Value * (1 << SacrificeCount);
+    private int CurrentDamage => Value + SacrificeBonus;
 
     public override string GetDynamicDescription()
     {
@@ -695,15 +707,15 @@ public class 献祭 : BaseCard
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
         int baseValue = Value;
-            if (Duration <= 0) return;
-            Dot dot = null;
-            dot = new Dot(user, user, Duration, d =>
+        if (Duration <= 0) return;
+        Dot dot = null;
+        dot = new Dot(user, user, Duration, d =>
         {
-            int damage = baseValue * (1 << SacrificeCount);
+            int damage = baseValue + SacrificeBonus;
             user.DealDamage(user, damage);
             if (target != null) user.DealDamage(target, damage);
-            SacrificeCount++;
-        }, null, () => $"每回合对双方造成{baseValue}×2^n点伤害，剩余{dot.duration}回合");
+            SacrificeBonus += 10;
+        }, null, () => $"每回合对双方造成{CurrentDamage}点伤害，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }

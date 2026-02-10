@@ -1300,7 +1300,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2b0ee3a1d0f8ee47b6bcd947de241bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  IsGMMode: 0
+  IsGMMode: 1
 --- !u!4 &371290955
 Transform:
   m_ObjectHideFlags: 0
