@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using DG.Tweening;
 
 public class BattleUI : MonoBehaviour
 {
@@ -8,6 +9,8 @@ public class BattleUI : MonoBehaviour
     public Button drawCardButton;
     public Button playCardButton;
     public Button endTurnButton;
+
+    public TextMeshProUGUI turnText;
 
     private TextMeshProUGUI endTurnButtonText;
     private int lastAutoMana = -1;
@@ -21,6 +24,67 @@ public class BattleUI : MonoBehaviour
         endTurnButton.onClick.AddListener(OnEndTurnClicked);
 
         endTurnButtonText = endTurnButton.GetComponentInChildren<TextMeshProUGUI>();
+
+        EventCenter.Register("TurnStart", (param) => ShowNewTurnInfo());
+    }
+
+
+    Sequence showTurnInfoSequence;
+    private void ShowNewTurnInfo()
+    {
+        if (turnText != null)
+        {
+            if (BattleManager.Instance.IsPlayerTurn())
+            {
+                turnText.gameObject.SetActive(true);
+
+                turnText.text = "你的回合";
+                turnText.color = Color.green;
+
+                if (showTurnInfoSequence != null && showTurnInfoSequence.IsActive())
+                {
+                    showTurnInfoSequence.Restart();
+                }
+                else
+                {
+                    turnText.transform.localScale = Vector3.one * 1.5f;
+                    showTurnInfoSequence = DOTween.Sequence();
+                    showTurnInfoSequence.Append(turnText.transform.DOScale(1f, 0.5f).SetEase(Ease.OutBack));
+
+                    showTurnInfoSequence.AppendInterval(1.5f); // 显示1.5秒后淡出
+                    showTurnInfoSequence.Append(turnText.DOFade(0f, 0.5f).SetEase(Ease.OutQuad).OnComplete(() =>
+                    {
+                        turnText.gameObject.SetActive(false);
+                        turnText.color = new Color(turnText.color.r, turnText.color.g, turnText.color.b, 1f); // 重置透明度
+                    }));
+                }
+
+            }
+            else
+            {
+                turnText.text = "敌人回合";
+                turnText.color = Color.red;
+                turnText.gameObject.SetActive(true);
+
+                if (showTurnInfoSequence != null && showTurnInfoSequence.IsActive())
+                {
+                    showTurnInfoSequence.Restart();
+                }
+                else
+                {
+                    turnText.transform.localScale = Vector3.one * 1.5f;
+                    showTurnInfoSequence = DOTween.Sequence();
+                    showTurnInfoSequence.Append(turnText.transform.DOScale(1f, 0.5f).SetEase(Ease.OutBack));
+
+                    showTurnInfoSequence.AppendInterval(1.5f); // 显示1.5秒后淡出
+                    showTurnInfoSequence.Append(turnText.DOFade(0f, 0.5f).SetEase(Ease.OutQuad).OnComplete(() =>
+                    {
+                        turnText.gameObject.SetActive(false);
+                        turnText.color = new Color(turnText.color.r, turnText.color.g, turnText.color.b, 1f); // 重置透明度
+                    }));
+                }
+            }
+        }
     }
 
 

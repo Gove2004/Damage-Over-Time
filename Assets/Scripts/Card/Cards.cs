@@ -23,7 +23,8 @@ public class 流血 : BaseCard
         int duration = Duration;
         int value = Value;
         if (duration <= 0) return;
-        var dot = new Dot(user, target, duration, d => user.DealDamage(target, value));
+        Dot dot = null;
+        dot = new Dot(user, target, duration, d => user.DealDamage(target, value), null, () => $"每回合对敌人造成{value}点伤害，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -38,7 +39,8 @@ public class 恢复 : BaseCard
         int duration = Duration;
         int value = Value;
         if (duration <= 0) return;
-        var dot = new Dot(user, user, duration, d => user.ApplyHealthChange(value, user));
+        Dot dot = null;
+        dot = new Dot(user, user, duration, d => user.ApplyHealthChange(value, user), null, () => $"每回合恢复{value}点生命，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -54,7 +56,8 @@ public class 入魔 : BaseCard
         int duration = Duration;
         int value = Value;
         if (duration <= 0) return;
-        var dot = new Dot(user, user, duration, d => d.target.ChangeMana(value));
+        Dot dot = null;
+        dot = new Dot(user, user, duration, d => d.target.ChangeMana(value), null, () => $"每回合额外获得{value}点魔力，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -68,17 +71,23 @@ public class 贪婪 : BaseCard
     {
         if (Duration <= 0) return;
         int drawCount = Mathf.Max(0, Value);
-        var dot = new Dot(user, user, Duration, d =>
+        Dot dot = null;
+        dot = new Dot(user, user, Duration, d =>
         {
-            for (int i = 0; i < drawCount; i++)
+            if (target == null || target.Cards.Count == 0) return;
+            int count = Mathf.Min(drawCount, target.Cards.Count);
+            for (int i = 0; i < count; i++)
             {
-                user.DrawCard(0);
+                int index = UnityEngine.Random.Range(0, target.Cards.Count);
+                BaseCard stolen = target.Cards[index];
+                target.Cards.RemoveAt(index);
+                user.GainCard(stolen);
+                if (target.Cards.Count == 0) break;
             }
-        });
+        }, null, () => $"每回合随机偷取敌人的{drawCount}张卡牌，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
-
 
 public class 吸取 : BaseCard
 {
@@ -89,11 +98,12 @@ public class 吸取 : BaseCard
         int duration = Duration;
         int value = Value;
         if (duration <= 0) return;
-        var dot = new Dot(user, target, duration, d =>
+        Dot dot = null;
+        dot = new Dot(user, target, duration, d =>
         {
             user.DealDamage(target, value);
             user.ApplyHealthChange(value, user);
-        });
+        }, null, () => $"每回合对敌人造成{value}点伤害并恢复{value}点生命，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -109,7 +119,8 @@ public class 爆发 : BaseCard
         user.ChangeMana(-manaSpent);
         int damage = (int)Mathf.Pow(Value, manaSpent);
         if (Duration <= 0) return;
-        var dot = new Dot(user, target, Duration, d => user.DealDamage(target, damage));
+        Dot dot = null;
+        dot = new Dot(user, target, Duration, d => user.DealDamage(target, damage), null, () => $"每回合造成{damage}点伤害，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -125,7 +136,8 @@ public class 第7张牌 : BaseCard
         int value = Value;
         if (duration <= 0) return;
         if (value < 0) value = 0;
-        var dot = new Dot(user, target, duration, d =>
+        Dot dot = null;
+        dot = new Dot(user, target, duration, d =>
         {
             int effectIndex = UnityEngine.Random.Range(0, 7);
             if (effectIndex == 0)
@@ -243,7 +255,7 @@ public class 第7张牌 : BaseCard
                 }
                 user.ApplyHealthChange(heal, user);
             }
-        });
+        }, null, () => $"每回合随机触发一种“七宗罪”效果，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -257,11 +269,12 @@ public class 上三角 : BaseCard
     {
         if (Duration <= 0) return;
         int damage = Value;
-        var dot = new Dot(user, target, Duration, d =>
+        Dot dot = null;
+        dot = new Dot(user, target, Duration, d =>
         {
             user.DealDamage(target, damage);
             damage *= 2;
-        });
+        }, null, () => $"每回合对敌人造成{damage}点伤害并使此伤害值翻倍，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -275,11 +288,12 @@ public class 下三角 : BaseCard
     {
         if (Duration <= 0) return;
         int damage = Value;
-        var dot = new Dot(user, target, Duration, d =>
+        Dot dot = null;
+        dot = new Dot(user, target, Duration, d =>
         {
             user.DealDamage(target, damage);
             damage = Mathf.Max(0, damage / 2);
-        });
+        }, null, () => $"每回合对敌人造成{damage}点伤害并使此伤害值减半，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -325,7 +339,8 @@ public class 偷窃 : BaseCard
         if (Duration <= 0) return;
         int stealCount = Mathf.Max(0, Value);
         if (stealCount == 0) return;
-        var dot = new Dot(user, user, Duration, d =>
+            Dot dot = null;
+            dot = new Dot(user, user, Duration, d =>
         {
             if (target == null || target.Cards.Count == 0) return;
             int count = Mathf.Min(stealCount, target.Cards.Count);
@@ -337,7 +352,7 @@ public class 偷窃 : BaseCard
                 user.GainCard(stolen);
                 if (target.Cards.Count == 0) break;
             }
-        });
+            }, null, () => $"每回合随机偷取敌人的{stealCount}张卡牌，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -368,7 +383,8 @@ public class 疯狂 : BaseCard
         int duration = Duration;
         int value = Value;
         if (duration <= 0) return;
-        var dot = new Dot(user, target, duration, d => user.DealDamage(target, value));
+        Dot dot = null;
+        dot = new Dot(user, target, duration, d => user.DealDamage(target, value), null, () => $"每回合对敌人造成{value}点伤害，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -384,11 +400,12 @@ public class 彻底疯狂 : BaseCard
         int value = Value;
         if (duration <= 0) return;
         int actualDuration = UnityEngine.Random.Range(1, duration + 1);
-        var dot = new Dot(user, target, actualDuration, d =>
+        Dot dot = null;
+        dot = new Dot(user, target, actualDuration, d =>
         {
             int damage = UnityEngine.Random.Range(0, value + 1);
             user.DealDamage(target, damage);
-        });
+        }, null, () => $"每回合造成0~{value}点随机伤害，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -403,15 +420,16 @@ public class 增援未来 : BaseCard
         int delay = 3;
         int duration = Duration;
         int value = Value;
-        var dot = new Dot(user, user, duration + delay, d =>
-        {
-            if (delay > 0)
+        Dot dot = null;
+        dot = new Dot(user, user, duration + delay, d =>
             {
-                delay--;
-                return;
-            }
-            user.ApplyHealthChange(value, user);
-        });
+                if (delay > 0)
+                {
+                    delay--;
+                    return;
+                }
+                user.ApplyHealthChange(value, user);
+            }, null, () => $"三回合后开始，每回合恢复{value}点生命，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -462,13 +480,14 @@ public class 攻击彩票 : BaseCard
         int duration = Duration;
         int value = Value;
         if (duration <= 0) return;
-        var dot = new Dot(user, target, duration, d =>
+            Dot dot = null;
+            dot = new Dot(user, target, duration, d =>
         {
             if (UnityEngine.Random.Range(0, 3) == 0)
             {
                 user.DealDamage(target, value);
             }
-        });
+        }, null, () => $"每回合有三分之一的概率造成{value}点伤害，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -483,13 +502,14 @@ public class 生命彩票 : BaseCard
         int duration = Duration;
         int value = Value;
         if (duration <= 0) return;
-        var dot = new Dot(user, user, duration, d =>
-        {
-            if (UnityEngine.Random.Range(0, 3) == 0)
+            Dot dot = null;
+            dot = new Dot(user, user, duration, d =>
             {
-                user.ApplyHealthChange(value, user);
-            }
-        });
+                if (UnityEngine.Random.Range(0, 3) == 0)
+                {
+                    user.ApplyHealthChange(value, user);
+                }
+            }, null, () => $"每回合有三分之一的概率回复{value}点生命，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -504,13 +524,14 @@ public class 魔力彩票 : BaseCard
         int duration = Duration;
         int value = Value;
         if (duration <= 0) return;
-        var dot = new Dot(user, user, duration, d =>
+        Dot dot = null;
+        dot = new Dot(user, user, duration, d =>
         {
             if (UnityEngine.Random.Range(0, 3) == 0)
             {
                 user.ChangeMana(value);
             }
-        });
+        }, null, () => $"每回合有三分之一的概率额外回复{value}点魔力，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -545,13 +566,14 @@ public class 破甲 : BaseCard
         if (Duration <= 0) return;
         float multiplier = Mathf.Max(0, Value);
         target.SetDamageTakenMultiplier(multiplier);
-        var dot = new Dot(user, target, Duration, d =>
+        Dot dot = null;
+        dot = new Dot(user, target, Duration, d =>
         {
             target.SetDamageTakenMultiplier(multiplier);
         }, d =>
         {
             target.SetDamageTakenMultiplier(1f);
-        });
+        }, () => $"敌方受到的伤害变为{multiplier}倍，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -565,7 +587,8 @@ public class 无敌金身 : BaseCard
     {
         int delay = 1;
         bool activated = false;
-        var dot = new Dot(user, user, Duration + delay, d =>
+        Dot dot = null;
+        dot = new Dot(user, user, Duration + delay, d =>
         {
             if (!activated)
             {
@@ -573,7 +596,7 @@ public class 无敌金身 : BaseCard
                 return;
             }
             user.SetImmuneThisTurn(true);
-        });
+        }, null, () => $"一回合后生效，免疫伤害，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -588,7 +611,8 @@ public class 偷dot : BaseCard
         if (Duration <= 0) return;
         int stealCount = Mathf.Max(0, Value);
         if (stealCount == 0) return;
-        var dot = new Dot(user, user, Duration, d =>
+        Dot dot = null;
+        dot = new Dot(user, user, Duration, d =>
         {
             if (target == null || target.dotBar.Count == 0) return;
             int count = Mathf.Min(stealCount, target.dotBar.Count);
@@ -602,7 +626,7 @@ public class 偷dot : BaseCard
                 stolen.target = user;
                 user.dotBar.Add(stolen);
             }
-        });
+        }, null, () => $"每回合随机偷取对方的{stealCount}个持续效果，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -617,13 +641,14 @@ public class 偷魔 : BaseCard
         int duration = Duration;
         int value = Value;
         if (duration <= 0) return;
-        var dot = new Dot(user, user, duration, d =>
+        Dot dot = null;
+        dot = new Dot(user, user, duration, d =>
         {
             if (target == null) return;
             if (target.mana <= 0) return;
             target.ChangeMana(-value);
             user.ChangeMana(value);
-        });
+        }, null, () => $"每回合偷取敌人{value}点魔力，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -644,7 +669,8 @@ public class 苦修 : BaseCard
             user.ChangeMana(value);
         };
         user.DamageTaken += handler;
-        var dot = new Dot(user, user, duration, d => { }, d => user.DamageTaken -= handler);
+        Dot dot = null;
+        dot = new Dot(user, user, duration, d => { }, d => user.DamageTaken -= handler, () => $"你对自己造成伤害后获得{value}点魔力，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -669,14 +695,15 @@ public class 献祭 : BaseCard
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
         int baseValue = Value;
-        if (Duration <= 0) return;
-        var dot = new Dot(user, user, Duration, d =>
+            if (Duration <= 0) return;
+            Dot dot = null;
+            dot = new Dot(user, user, Duration, d =>
         {
             int damage = baseValue * (1 << SacrificeCount);
             user.DealDamage(user, damage);
             if (target != null) user.DealDamage(target, damage);
             SacrificeCount++;
-        });
+        }, null, () => $"每回合对双方造成{baseValue}×2^n点伤害，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -692,14 +719,15 @@ public class 卖血 : BaseCard
         int value = Value;
         if (duration <= 0) return;
         int drawCount = Mathf.Max(0, value / 10);
-        var dot = new Dot(user, user, duration, d =>
+        Dot dot = null;
+        dot = new Dot(user, user, duration, d =>
         {
             user.ApplyHealthChange(-value, user);
             for (int i = 0; i < drawCount; i++)
             {
                 user.DrawCard(0);
             }
-        });
+        }, null, () => $"每回合对自己造成{value}点伤害并抽{drawCount}张牌，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -719,7 +747,8 @@ public class 反伤 : BaseCard
             if (target != null) user.DealDamage(target, amount);
         };
         user.DamageTaken += handler;
-        var dot = new Dot(user, user, Duration, d => { }, d => user.DamageTaken -= handler);
+        Dot dot = null;
+        dot = new Dot(user, user, Duration, d => { }, d => user.DamageTaken -= handler, () => $"你对自己造成伤害后恢复等量生命并对敌人造成等量伤害，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -733,7 +762,8 @@ public class 逃避 : BaseCard
     {
         if (Duration <= 0) return;
         user.SetImmuneSelfDamage(true);
-        var dot = new Dot(user, user, Duration + 1, d =>
+        Dot dot = null;
+        dot = new Dot(user, user, Duration + 1, d =>
         {
             if (d.duration <= 1)
             {
@@ -741,7 +771,7 @@ public class 逃避 : BaseCard
                 return;
             }
             user.SetImmuneSelfDamage(true);
-        });
+        }, null, () => $"使你无法对自己造成伤害，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -759,7 +789,8 @@ public class 吸血 : BaseCard
             user.ApplyHealthChange(amount, user);
         };
         user.DamageDealt += handler;
-        var dot = new Dot(user, user, Duration, d => { }, d => user.DamageDealt -= handler);
+        Dot dot = null;
+        dot = new Dot(user, user, Duration, d => { }, d => user.DamageDealt -= handler, () => $"你造成的伤害会为你自身恢复等量生命，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }

@@ -6,10 +6,11 @@ public class BattleManager : MonoBehaviour
 {
     // 简单的单例模式
     public static BattleManager Instance;
+    public bool IsGMMode = false;
     void Awake()
     {
         Instance = this;
-        if (GetComponent<GMTool>() == null)
+        if (GetComponent<GMTool>() == null && IsGMMode)
         {
             gameObject.AddComponent<GMTool>();
         }
@@ -19,6 +20,10 @@ public class BattleManager : MonoBehaviour
     public BaseCharacter player;
     public BaseCharacter enemy;
     private int currentTurn = 1;
+    public bool IsPlayerTurn()
+    {
+        return currentTurn % 2 == 1;
+    }
     private Action onPhaseChangedUnsub;
 
 

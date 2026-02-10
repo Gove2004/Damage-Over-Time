@@ -37,6 +37,8 @@ public abstract class BaseCharacter
     // 行动
     public void StartTurn()
     {
+        EventCenter.Publish("TurnStart", this);
+
         IsInTurn = true;
         immuneThisTurn = false;
 
@@ -138,6 +140,9 @@ public abstract class BaseCharacter
     {
         if (factor == 1) return;
         overclockMultiplier *= factor;
+
+
+        // 新的超频只对玩家手牌生效
         foreach (var card in Cards)
         {
             card.MultiplyNumbers(factor);
@@ -155,7 +160,7 @@ public abstract class BaseCharacter
         if (card == null) return;
         if (overclockMultiplier != 1)
         {
-            card.MultiplyNumbers(overclockMultiplier);
+            // card.MultiplyNumbers(overclockMultiplier);  // // 新的超频只对玩家手牌生
         }
         if (extraCardDuration != 0)
         {
