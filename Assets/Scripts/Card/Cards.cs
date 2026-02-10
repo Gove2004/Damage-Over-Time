@@ -90,10 +90,6 @@ public class 贪婪 : BaseCard
                 int index = UnityEngine.Random.Range(0, target.Cards.Count);
                 BaseCard stolen = target.Cards[index];
                 target.Cards.RemoveAt(index);
-                if (target is Player)
-                {
-                    EventCenter.Publish("Player_PlayCard", stolen);
-                }
                 user.GainCard(stolen);
                 if (target.Cards.Count == 0) break;
             }
@@ -187,10 +183,6 @@ public class 第7张牌 : BaseCard
                                 int index = UnityEngine.Random.Range(0, target.Cards.Count);
                                 BaseCard stolenCard = target.Cards[index];
                                 target.Cards.RemoveAt(index);
-                                if (target is Player)
-                                {
-                                    EventCenter.Publish("Player_PlayCard", stolenCard);
-                                }
                                 user.GainCard(stolenCard);
                                 stolen = true;
                             }
@@ -369,10 +361,6 @@ public class 偷窃 : BaseCard
                 int index = UnityEngine.Random.Range(0, target.Cards.Count);
                 BaseCard stolen = target.Cards[index];
                 target.Cards.RemoveAt(index);
-                if (target is Player)
-                {
-                    EventCenter.Publish("Player_PlayCard", stolen);
-                }
                 user.GainCard(stolen);
                 if (target.Cards.Count == 0) break;
             }

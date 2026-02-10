@@ -129,7 +129,7 @@ public class BattleUI : MonoBehaviour
         {
             Player player = (Player)BattleManager.Instance.player;
             bool isPlayerTurn = player.isReady;
-            drawCardButton.interactable = isPlayerTurn && player.mana >= 1 && player.Cards.Count < 7; // 限制手牌上限
+            drawCardButton.interactable = isPlayerTurn && player.mana >= 1 && player.Cards.Count < Player.HandLimit;
             playCardButton.interactable = isPlayerTurn && cardList.AblePlay;
             endTurnButton.interactable = isPlayerTurn;
 

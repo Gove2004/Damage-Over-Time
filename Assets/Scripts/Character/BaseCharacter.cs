@@ -172,10 +172,13 @@ public abstract class BaseCharacter
 
     // 卡牌逻辑
     public List<BaseCard> Cards = new List<BaseCard>();
+    protected virtual int MaxHandSize => int.MaxValue;
+    private bool IsHandFull => MaxHandSize > 0 && Cards.Count >= MaxHandSize;
 
 
     public BaseCard GainRandomCard()
     {
+        if (IsHandFull) return null;
         BaseCard newCard = CardFactory.GetRandomCard();
         if (newCard == null) return null;
         ApplyBuffsToCard(newCard);
@@ -191,6 +194,7 @@ public abstract class BaseCharacter
     public void GainCard(BaseCard card)
     {
         if (card == null) return;
+        if (IsHandFull) return;
         ApplyBuffsToCard(card);
         Cards.Add(card);
         if (this is Player) EventCenter.Publish("Player_DrawCard", card);
@@ -199,6 +203,7 @@ public abstract class BaseCharacter
 
     public BaseCard DrawCard(int cost = 1)
     {
+        if (IsHandFull) return null;
         if (mana < cost) return null;  // 抽卡需要消耗法力值
         ChangeMana(-cost);  // 抽卡消耗指定点法力值
 
@@ -212,6 +217,7 @@ public abstract class BaseCharacter
         {  // 敌人直接随机生成卡牌
             baseCard = CardFactory.GetRandomEnemyCard();
         }
+        if (baseCard == null) return null;
         ApplyBuffsToCard(baseCard);
         Cards.Add(baseCard);
 
@@ -227,11 +233,11 @@ public abstract class BaseCharacter
             // 扣除法力值
             ChangeMana(-card.Cost);
 
-            // 使用卡牌效果
-            card.Execute(this, Target);
-
             // 从手牌中移除卡牌
             Cards.Remove(card);
+
+            // 使用卡牌效果
+            card.Execute(this, Target);
 
             EventCenter.Publish("CardPlayed", card);
         }
