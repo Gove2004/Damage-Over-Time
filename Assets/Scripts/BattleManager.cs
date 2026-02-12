@@ -10,6 +10,8 @@ public class BattleManager : MonoBehaviour
     void Awake()
     {
         Instance = this;
+
+
         if (GetComponent<GMTool>() == null && IsGMMode)
         {
             gameObject.AddComponent<GMTool>();
@@ -79,6 +81,18 @@ public class BattleManager : MonoBehaviour
         Debug.Log("战斗结束。");
 
         EventCenter.Publish("BattleEnded");
+
+
+        // 结算分数
+        int score = enemy.health;
+        GameManager.Instance.Save(score);
+
+        // 清理战斗数据
+        player = null;
+        enemy = null;
+
+        // UI跳转
+        GameManager.Instance.SwitchSecne(false);
     }
 
 
@@ -100,19 +114,20 @@ public class BattleManager : MonoBehaviour
     }
 
 
+    // 注释掉临时代码
 
-    void Start()
-    {
-        StartBattle();
-    }
+    // void Start()
+    // {
+    //     StartBattle();
+    // }
 
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            StartBattle();
-        }
-    }
+    // void Update()
+    // {
+    //     if (Input.GetKeyDown(KeyCode.Space))
+    //     {
+    //         StartBattle();
+    //     }
+    // }
 
     void OnDestroy()
     {

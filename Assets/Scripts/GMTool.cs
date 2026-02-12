@@ -115,6 +115,17 @@ public class GMTool : MonoBehaviour
         {
             GUILayout.Label(message);
         }
+
+        // 清空存档
+        if (GUILayout.Button("清空存档"))
+        {
+            PlayerPrefs.DeleteAll();
+            GameManager.Instance.Load();
+            message = "存档已清空";
+        }
+
+
+
         GUI.DragWindow();
     }
 }

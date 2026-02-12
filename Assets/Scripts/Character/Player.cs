@@ -22,6 +22,7 @@ public class Player : BaseCharacter
     }
 
 
+    private bool isDead = false;
     public override void ChangeHealth(int amount)
     {
         if (amount >= 0)
@@ -38,9 +39,10 @@ public class Player : BaseCharacter
                 health += amount;
             }
         }
-        if (health <= 0)
+        if (health <= 0 && !isDead)
         {
             health = 0;
+            isDead = true;
             EventCenter.Publish("PlayerDead", this);
         }
     }

@@ -125,7 +125,7 @@ public class BattleUI : MonoBehaviour
 
     private void IsPlayerTurn()
     {
-        if ((Player)BattleManager.Instance.player != null)
+        if ((Player)BattleManager.Instance?.player != null)
         {
             Player player = (Player)BattleManager.Instance.player;
             bool isPlayerTurn = player.isReady;

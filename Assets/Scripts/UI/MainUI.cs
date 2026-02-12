@@ -18,13 +18,11 @@ public class MainUI : MonoBehaviour
 
     public void UpdateMaxScore()
     {
-        int maxScore = PlayerPrefs.GetInt("MaxScore", 0);
-        maxScoreText.text = $"最高分数: {maxScore}";
+        maxScoreText.text = $"最高分数: {GameManager.Instance.maxScore}";
     }
 
     public void OnStartBattleClicked()
     {
-        BattleManager.Instance.StartBattle();
-        gameObject.SetActive(false);
+        GameManager.Instance.SwitchSecne(true);
     }
 }

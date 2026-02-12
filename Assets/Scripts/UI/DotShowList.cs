@@ -70,11 +70,11 @@ public class DotShowList : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
 
         if (isPlayer)
         {
-            UpdateDotShows(BattleManager.Instance.player.dotBar);
+            UpdateDotShows(BattleManager.Instance.player?.dotBar);
         }
         else
         {
-            UpdateDotShows(BattleManager.Instance.enemy.dotBar);
+            UpdateDotShows(BattleManager.Instance.enemy?.dotBar);
         }
     }
 
@@ -196,6 +196,7 @@ public class DotShowList : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
     private void UpdateDotShows(System.Collections.Generic.List<Dot> dots)
     {
         if (dotListContainer == null) return;
+        if (dots == null) return;
 
         EnsureDotItems(dots.Count);
 
