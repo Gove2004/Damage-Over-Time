@@ -2,6 +2,8 @@
 
 public class Player : BaseCharacter
 {
+    public const int HandLimit = 8;
+
     public Player()
     {
         // 初始化玩家属性
@@ -12,6 +14,7 @@ public class Player : BaseCharacter
 
 
     public bool isReady { get; set; } = false;
+    protected override int MaxHandSize => HandLimit;
 
     protected override void Action()
     {
