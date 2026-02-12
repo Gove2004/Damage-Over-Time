@@ -23,7 +23,7 @@ public class HUD : MonoBehaviour
             {
                 playerHPText.text = $"HP={player.health}";
                 playerSPText.text = $"SP={player.shiled}";
-                playerMPText.text = $"MP={player.mana}";
+                playerMPText.text = $"{player.mana}";
             }
             if (enemy != null)
             {
