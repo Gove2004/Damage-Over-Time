@@ -6,12 +6,17 @@ public class DamageEffectManager : MonoBehaviour
     public static DamageEffectManager Instance;
 
     [Header("Positions")]
+    // Use specific game objects for tracking position if possible
+    public Transform playerTransform;
+    public Transform enemyTransform;
+
+    // Fallback or legacy reference
     public Transform playerPos;
     public Transform enemyPos;
 
     [Header("Settings")]
-    public Vector3 playerEffectOffset = new Vector3(0, -600f, 0); // Lower for player
-    public Vector3 enemyEffectOffset = new Vector3(0, -350f, 0);  // Default for enemy
+    public Vector3 playerEffectOffset = new Vector3(50f, -50f, 0); // Lower for player
+    public Vector3 enemyEffectOffset = new Vector3(200f, -250f, 0);  // Default for enemy
 
     private void Awake()
     {
@@ -59,11 +64,31 @@ public class DamageEffectManager : MonoBehaviour
 
     private void FindPositions()
     {
+        // Try to find characters in the scene if references are missing
+        if (playerTransform == null)
+        {
+            GameObject pObj = GameObject.Find("Player"); // Try finding by name
+            if (pObj != null) playerTransform = pObj.transform;
+        }
+        
+        if (enemyTransform == null)
+        {
+            GameObject eObj = GameObject.Find("Enemy"); // Try finding by name
+            if (eObj == null) eObj = GameObject.Find("EnemyBoss");
+            if (eObj != null) enemyTransform = eObj.transform;
+        }
+
+        // Sync legacy Pos to Transform if found
+        if (playerTransform != null) playerPos = playerTransform;
+        if (enemyTransform != null) enemyPos = enemyTransform;
+
+        // Fallback to HUD positions if character transforms still not found
         if (playerPos == null || enemyPos == null)
         {
             var hud = FindObjectOfType<HUD>();
             if (hud != null)
             {
+                // Only override if we don't have a better target
                 if (playerPos == null && hud.playerHPText != null) playerPos = hud.playerHPText.transform;
                 if (enemyPos == null && hud.enemyHPText != null) enemyPos = hud.enemyHPText.transform;
             }
@@ -90,29 +115,46 @@ public class DamageEffectManager : MonoBehaviour
 
     private void OnPlayerHeal(int amount)
     {
-        ShowHealEffect(playerPos, amount, playerEffectOffset);
+        // Use playerTransform if available, otherwise playerPos
+        Transform target = playerTransform != null ? playerTransform : playerPos;
+        // If using actual transform, we might want a smaller offset or zero offset depending on pivot
+        // Let's assume offset is still needed but maybe different. For now use same offset.
+        ShowHealEffect(target, amount, playerEffectOffset);
     }
 
     private void OnEnemyHeal(int amount)
     {
-        ShowHealEffect(enemyPos, amount, enemyEffectOffset);
+        Transform target = enemyTransform != null ? enemyTransform : enemyPos;
+        ShowHealEffect(target, amount, enemyEffectOffset);
     }
 
     private void OnPlayerDamage(int amount, BaseCharacter source)
     {
-        ShowEffect(playerPos, amount, playerEffectOffset);
+        Transform target = playerTransform != null ? playerTransform : playerPos;
+        ShowEffect(target, amount, playerEffectOffset);
     }
 
     private void OnEnemyDamage(int amount, BaseCharacter source)
     {
-        ShowEffect(enemyPos, amount, enemyEffectOffset);
+        Transform target = enemyTransform != null ? enemyTransform : enemyPos;
+        ShowEffect(target, amount, enemyEffectOffset);
     }
 
     public void ShowFloatingText(Transform targetDetails, string text, Color color, Vector3? offsetOverride = null)
     {
+        // For floating text (DOT description), we check if the targetDetails matches our known positions to redirect logic
+        // But currently ShowFloatingText uses CENTER SCREEN regardless of targetDetails.
+        // So we don't need to change this logic for "FloatingText_Center".
+        
         if (targetDetails == null) return;
         
         Canvas canvas = targetDetails.GetComponentInParent<Canvas>();
+        // If target is a World GameObject (Player/Enemy), it might not have a Canvas parent!
+        // We need to find the main canvas in that case.
+        if (canvas == null) 
+        {
+            canvas = FindObjectOfType<Canvas>(); // Find any canvas (usually Main Canvas)
+        }
         if (canvas == null) return;
 
         // Create Center Text Object
@@ -135,14 +177,39 @@ public class DamageEffectManager : MonoBehaviour
     {
         if (targetDetails == null) return;
         
-        // Get the Canvas of the target
+        // Play Sound
+        if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX("Slash");
+
+        // Get the Canvas
         Canvas canvas = targetDetails.GetComponentInParent<Canvas>();
+        // Handle World Space Objects
+        bool isWorldSpace = false;
+        if (canvas == null)
+        {
+            canvas = FindObjectOfType<Canvas>();
+            isWorldSpace = true;
+        }
         if (canvas == null) return;
 
-        // Spawn Slash Effect first (behind text ideally, but text is spawned after so it appears on top)
+        // Spawn Slash Effect
         GameObject slashObj = new GameObject("SlashEffect");
         slashObj.transform.SetParent(canvas.transform, false);
-        slashObj.transform.position = targetDetails.position + offset;
+        
+        if (isWorldSpace)
+        {
+            // Convert World Position to Canvas Position
+            Vector2 screenPos = Camera.main.WorldToScreenPoint(targetDetails.position);
+            Vector2 localPos;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(canvas.transform as RectTransform, screenPos, canvas.worldCamera, out localPos);
+            
+            // Apply offset (assuming offset is in Canvas pixels now, or we need to scale it)
+            // If offset was designed for UI (pixels), it works here.
+            slashObj.transform.localPosition = localPos + (Vector2)offset;
+        }
+        else
+        {
+            slashObj.transform.position = targetDetails.position + offset;
+        }
         
         var slash = slashObj.AddComponent<SlashEffect>();
         // Create Sprite for slash
@@ -156,7 +223,18 @@ public class DamageEffectManager : MonoBehaviour
         // Spawn Popup Text
         GameObject popupObj = new GameObject("DamagePopup");
         popupObj.transform.SetParent(canvas.transform, false);
-        popupObj.transform.position = targetDetails.position + offset; 
+        
+        if (isWorldSpace)
+        {
+             Vector2 screenPos = Camera.main.WorldToScreenPoint(targetDetails.position);
+             Vector2 localPos;
+             RectTransformUtility.ScreenPointToLocalPointInRectangle(canvas.transform as RectTransform, screenPos, canvas.worldCamera, out localPos);
+             popupObj.transform.localPosition = localPos + (Vector2)offset;
+        }
+        else
+        {
+            popupObj.transform.position = targetDetails.position + offset; 
+        }
         
         var popup = popupObj.AddComponent<DamagePopup>();
         popup.Setup(amount);
@@ -165,14 +243,34 @@ public class DamageEffectManager : MonoBehaviour
     private void ShowHealEffect(Transform targetDetails, int amount, Vector3 offset)
     {
         if (targetDetails == null) return;
+
+        // Play Sound
+        if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX("Heal");
         
         Canvas canvas = targetDetails.GetComponentInParent<Canvas>();
+        bool isWorldSpace = false;
+        if (canvas == null)
+        {
+            canvas = FindObjectOfType<Canvas>();
+            isWorldSpace = true;
+        }
         if (canvas == null) return;
 
         // Spawn Heal Circle Effect (reuse slash logic but with heal sprite)
         GameObject healObj = new GameObject("HealEffect");
         healObj.transform.SetParent(canvas.transform, false);
-        healObj.transform.position = targetDetails.position + offset;
+        
+        if (isWorldSpace)
+        {
+            Vector2 screenPos = Camera.main.WorldToScreenPoint(targetDetails.position);
+            Vector2 localPos;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(canvas.transform as RectTransform, screenPos, canvas.worldCamera, out localPos);
+            healObj.transform.localPosition = localPos + (Vector2)offset;
+        }
+        else
+        {
+            healObj.transform.position = targetDetails.position + offset;
+        }
         
         var slash = healObj.AddComponent<SlashEffect>(); // Reuse slash animation logic (scale up and fade)
         var img = healObj.AddComponent<UnityEngine.UI.Image>();
@@ -184,7 +282,18 @@ public class DamageEffectManager : MonoBehaviour
         // Spawn Popup Text
         GameObject popupObj = new GameObject("HealPopup");
         popupObj.transform.SetParent(canvas.transform, false);
-        popupObj.transform.position = targetDetails.position + offset; 
+        
+        if (isWorldSpace)
+        {
+            Vector2 screenPos = Camera.main.WorldToScreenPoint(targetDetails.position);
+            Vector2 localPos;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(canvas.transform as RectTransform, screenPos, canvas.worldCamera, out localPos);
+            popupObj.transform.localPosition = localPos + (Vector2)offset;
+        }
+        else
+        {
+            popupObj.transform.position = targetDetails.position + offset; 
+        }
         
         var popup = popupObj.AddComponent<DamagePopup>();
         popup.Setup("+" + amount, Color.green);

@@ -1424,6 +1424,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   IsGMMode: 1
+  playerTransformRef: {fileID: 509466293}
+  enemyTransformRef: {fileID: 1079673867}
 --- !u!4 &371290955
 Transform:
   m_ObjectHideFlags: 0

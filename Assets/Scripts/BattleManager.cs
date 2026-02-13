@@ -7,6 +7,11 @@ public class BattleManager : MonoBehaviour
     // 简单的单例模式
     public static BattleManager Instance;
     public bool IsGMMode = false;
+
+    // 手动指定角色位置，用于 DamageEffectManager
+    public Transform playerTransformRef;
+    public Transform enemyTransformRef;
+
     void Awake()
     {
         Instance = this;
@@ -20,7 +25,23 @@ public class BattleManager : MonoBehaviour
         // 自动添加伤害特效管理器
         if (GetComponent<DamageEffectManager>() == null)
         {
-            gameObject.AddComponent<DamageEffectManager>();
+            var dem = gameObject.AddComponent<DamageEffectManager>();
+            // 自动注入引用
+            dem.playerTransform = playerTransformRef;
+            dem.enemyTransform = enemyTransformRef;
+        }
+        else
+        {
+            var dem = GetComponent<DamageEffectManager>();
+            dem.playerTransform = playerTransformRef;
+            dem.enemyTransform = enemyTransformRef;
+        }
+
+        // 自动添加音频管理器
+        if (FindObjectOfType<AudioManager>() == null)
+        {
+            var audioObj = new GameObject("AudioManager");
+            audioObj.AddComponent<AudioManager>();
         }
     }
 
