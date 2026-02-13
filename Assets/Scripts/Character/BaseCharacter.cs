@@ -115,8 +115,8 @@ public abstract class BaseCharacter
                  // Determine transform based on character type
                  // A bit hacky since BaseCharacter doesn't know about Transforms directly usually
                  // But we can check against BattleManager instance
-                 if (this == BattleManager.Instance.player) targetTransform = DamageEffectManager.Instance.playerPos;
-                 else if (this == BattleManager.Instance.enemy) targetTransform = DamageEffectManager.Instance.enemyPos;
+                if (this == BattleManager.Instance.player) targetTransform = DamageEffectManager.Instance.playerTransform;
+                else if (this == BattleManager.Instance.enemy) targetTransform = DamageEffectManager.Instance.enemyTransform;
             }
 
             foreach (var effect in dotsToProcess)

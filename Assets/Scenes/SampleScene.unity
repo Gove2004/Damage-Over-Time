@@ -1404,6 +1404,7 @@ GameObject:
   - component: {fileID: 371290954}
   - component: {fileID: 371290957}
   - component: {fileID: 371290956}
+  - component: {fileID: 371290958}
   m_Layer: 0
   m_Name: BattleManager
   m_TagString: Untagged
@@ -1467,6 +1468,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   battleUI: {fileID: 675287022}
   mainUI: {fileID: 402831518}
+--- !u!114 &371290958
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 371290953}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ee90e13de6ef1341927233229475622, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerTransform: {fileID: 509466293}
+  enemyTransform: {fileID: 1079673867}
+  targetCanvas: {fileID: 717713356}
+  uiCamera: {fileID: 519420031}
+  playerEffectOffset: {x: -50, y: -50}
+  enemyEffectOffset: {x: 200, y: -250}
 --- !u!1 &402831518
 GameObject:
   m_ObjectHideFlags: 0

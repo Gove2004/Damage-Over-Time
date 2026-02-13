@@ -1,0 +1,9 @@
+{
+  "id": "ab3f9c2d",
+  "type": "AddComponent",
+  "timestamp": "2026-02-13T15:02:00Z",
+  "parameters": {
+    "target": "BattleManager",
+    "componentType": "DamageEffectManager"
+  }
+}
