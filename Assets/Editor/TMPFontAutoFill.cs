@@ -10,7 +10,7 @@ public static class TMPFontAutoFill
 {
     private const string FontAssetPath = "Assets/Resources/AlibabaPuHuiTi-3-55 SDF.asset";
     private const string SourceFontPath = "Assets/Resources/AlibabaPuHuiTi-3-55.ttf";
-    private const string CardsCsvPath = "Assets/Resources/cards.csv";
+    private const string CardsCsvPath = "Assets/StreamingAssets/cards.csv";
     private const string PrefKey = "TMPFontAutoFill.Done";
 
     [InitializeOnLoadMethod]
