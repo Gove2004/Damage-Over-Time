@@ -22,7 +22,7 @@ public static class CardDatabase
     private static Dictionary<int, CardData> cardDataDict = new Dictionary<int, CardData>();
     
     // 硬编码的CSV相对路径
-    private const string CSV_RELATIVE_PATH = "Resources/cards.csv";
+    private const string CSV_RELATIVE_PATH = "cards.csv";
     
     // 静态构造函数，自动加载数据
     static CardDatabase()
@@ -35,8 +35,7 @@ public static class CardDatabase
     {
         try
         {
-            // 构建完整路径（相对于Application.dataPath）
-            string fullPath = Path.Combine(Application.dataPath, CSV_RELATIVE_PATH);
+            string fullPath = Path.Combine(Application.streamingAssetsPath, CSV_RELATIVE_PATH);
             
             if (!File.Exists(fullPath))
             {
