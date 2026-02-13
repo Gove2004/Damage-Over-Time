@@ -17,6 +17,11 @@ public class MainUI : MonoBehaviour
         startBattleButton.onClick.AddListener(OnStartBattleClicked);
         introButton.onClick.AddListener(OnIntroClicked);
         teamButton.onClick.AddListener(OnTeamClicked);
+        
+    }
+
+    public void OnEnable()
+    {
         UpdateMaxScore();
     }
 
