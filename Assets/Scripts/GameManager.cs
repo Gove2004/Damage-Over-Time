@@ -18,6 +18,14 @@ public class GameManager : MonoBehaviour
         SwitchSecne(false); // 默认进入主界面
     }
 
+    
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Application.Quit();
+        }
+    }
 
     # region 存档
 

@@ -20,7 +20,7 @@ public class DamagePopup : MonoBehaviour
 
         textMesh.text = text;
         textMesh.color = color;
-        textMesh.fontSize = 48;
+        textMesh.fontSize = 24;
         textMesh.alignment = TextAlignmentOptions.Center;
         textMesh.raycastTarget = false;
 
