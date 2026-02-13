@@ -12,6 +12,13 @@ public class BattleManager : MonoBehaviour
     public Transform playerTransformRef;
     public Transform enemyTransformRef;
 
+    [Header("Audio Resources")]
+    public AudioClip drawClip;
+    public AudioClip playClip;
+    public AudioClip damageClip;
+    public AudioClip healClip;
+    public AudioClip manaClip;
+
     void Awake()
     {
         Instance = this;
@@ -38,10 +45,25 @@ public class BattleManager : MonoBehaviour
         }
 
         // 自动添加音频管理器
-        if (FindObjectOfType<AudioManager>() == null)
+        var audioMgr = FindObjectOfType<AudioManager>();
+        if (audioMgr == null)
         {
             var audioObj = new GameObject("AudioManager");
-            audioObj.AddComponent<AudioManager>();
+            audioMgr = audioObj.AddComponent<AudioManager>();
+        }
+
+        // 注入音频资源
+        if (audioMgr != null)
+        {
+            if (drawClip != null) audioMgr.drawClip = drawClip;
+            if (playClip != null) audioMgr.playClip = playClip;
+            if (damageClip != null) audioMgr.damageClip = damageClip;
+            if (healClip != null) audioMgr.healClip = healClip;
+            if (manaClip != null) audioMgr.manaClip = manaClip;
+            
+            Debug.Log($"[BattleManager] Injecting clips to AudioManager. ManaClip: {manaClip}");
+            
+            audioMgr.RegisterClips();
         }
     }
 

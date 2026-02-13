@@ -9,7 +9,14 @@ public class AudioManager : MonoBehaviour
     public AudioSource musicSource;
     public AudioSource sfxSource;
 
-    [Header("Procedural Settings")]
+    [Header("Audio Clips")]
+    public AudioClip drawClip;
+    public AudioClip playClip;
+    public AudioClip damageClip;
+    public AudioClip healClip;
+    public AudioClip manaClip;
+
+    [Header("Settings")]
     [Range(0.1f, 3f)] public float masterVolume = 1f;
 
     private Dictionary<string, AudioClip> proceduralClips = new Dictionary<string, AudioClip>();
@@ -25,7 +32,7 @@ public class AudioManager : MonoBehaviour
             if (musicSource == null) musicSource = gameObject.AddComponent<AudioSource>();
             if (sfxSource == null) sfxSource = gameObject.AddComponent<AudioSource>();
             
-            GenerateProceduralSounds();
+            RegisterClips();
         }
         else
         {
@@ -63,120 +70,14 @@ public class AudioManager : MonoBehaviour
         }
     }
 
-    private void GenerateProceduralSounds()
+    public void RegisterClips()
     {
-        // 1. Draw Card (Slide/Paper sound) - White noise burst with filter
-        proceduralClips["Draw"] = GenerateNoiseClip("Draw", 0.2f, true);
+        Debug.Log($"[AudioManager] Registering Clips. Draw:{drawClip!=null}, Play:{playClip!=null}, Slash:{damageClip!=null}, Heal:{healClip!=null}, Mana:{manaClip!=null}");
 
-        // 2. Play Card (Place/Click) - Short punchy noise
-        proceduralClips["Play"] = GenerateToneClip("Play", 400f, 0.15f, true);
-
-        // 3. Slash (Damage) - Sawtooth/Noise sweep
-        proceduralClips["Slash"] = GenerateSlashClip();
-
-        // 4. Heal (Magic chime) - Sine wave arpeggio
-        proceduralClips["Heal"] = GenerateHealClip();
-    }
-
-    private AudioClip GenerateNoiseClip(string name, float length, bool fadeOut)
-    {
-        int sampleRate = 44100;
-        int samples = (int)(length * sampleRate);
-        float[] data = new float[samples];
-        
-        for (int i = 0; i < samples; i++)
-        {
-            float t = (float)i / samples;
-            float noise = Random.Range(-1f, 1f);
-            float envelope = fadeOut ? 1f - t : 1f;
-            data[i] = noise * envelope * 0.5f;
-        }
-
-        AudioClip clip = AudioClip.Create(name, samples, 1, sampleRate, false);
-        clip.SetData(data, 0);
-        return clip;
-    }
-
-    private AudioClip GenerateToneClip(string name, float freq, float length, bool decay)
-    {
-        int sampleRate = 44100;
-        int samples = (int)(length * sampleRate);
-        float[] data = new float[samples];
-
-        for (int i = 0; i < samples; i++)
-        {
-            float t = (float)i / sampleRate;
-            float envelope = decay ? 1f - ((float)i / samples) : 1f;
-            data[i] = Mathf.Sin(2 * Mathf.PI * freq * t) * envelope * 0.5f;
-        }
-
-        AudioClip clip = AudioClip.Create(name, samples, 1, sampleRate, false);
-        clip.SetData(data, 0);
-        return clip;
-    }
-
-    private AudioClip GenerateSlashClip()
-    {
-        int sampleRate = 44100;
-        float length = 0.25f;
-        int samples = (int)(length * sampleRate);
-        float[] data = new float[samples];
-
-        for (int i = 0; i < samples; i++)
-        {
-            float t = (float)i / sampleRate;
-            float progress = (float)i / samples;
-            
-            // Noise part (High frequency hiss)
-            float noise = Random.Range(-1f, 1f);
-            
-            // Tone part (Low frequency sweep for impact)
-            // 300Hz down to 50Hz
-            float freq = Mathf.Lerp(300f, 50f, progress);
-            float tone = Mathf.Sin(2 * Mathf.PI * freq * t);
-            
-            // Envelope: Sharp attack, exponential decay
-            float envelope = Mathf.Exp(-5f * progress);
-            
-            // Mix
-            float val = (noise * 0.6f + tone * 0.4f) * envelope;
-            
-            data[i] = val;
-        }
-
-        AudioClip clip = AudioClip.Create("Slash", samples, 1, sampleRate, false);
-        clip.SetData(data, 0);
-        return clip;
-    }
-
-    private AudioClip GenerateHealClip()
-    {
-        int sampleRate = 44100;
-        float length = 1.0f;
-        int samples = (int)(length * sampleRate);
-        float[] data = new float[samples];
-
-        // Chord: C major (C, E, G) ascending
-        float[] freqs = new float[] { 523.25f, 659.25f, 783.99f, 1046.50f };
-        float noteDur = length / freqs.Length;
-
-        for (int i = 0; i < samples; i++)
-        {
-            float t = (float)i / sampleRate;
-            int noteIndex = Mathf.FloorToInt(t / noteDur);
-            if (noteIndex >= freqs.Length) noteIndex = freqs.Length - 1;
-            
-            float freq = freqs[noteIndex];
-            
-            // Sine wave + slight envelope per note
-            float localT = t % noteDur;
-            float envelope = 1f - (localT / noteDur); // Saw envelope
-            
-            data[i] = Mathf.Sin(2 * Mathf.PI * freq * t) * 0.3f * envelope;
-        }
-
-        AudioClip clip = AudioClip.Create("Heal", samples, 1, sampleRate, false);
-        clip.SetData(data, 0);
-        return clip;
+        if (drawClip != null) proceduralClips["Draw"] = drawClip;
+        if (playClip != null) proceduralClips["Play"] = playClip;
+        if (damageClip != null) proceduralClips["Slash"] = damageClip; // Key matches "Slash" usage in DamageEffectManager
+        if (healClip != null) proceduralClips["Heal"] = healClip;
+        if (manaClip != null) proceduralClips["Mana"] = manaClip;
     }
 }

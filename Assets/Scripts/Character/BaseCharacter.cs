@@ -33,6 +33,11 @@ public abstract class BaseCharacter
         {
             mana = 0;
         }
+
+        if (amount > 0)
+        {
+             if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX("Mana");
+        }
     }
 
     // 行动
