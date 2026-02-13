@@ -104,6 +104,7 @@ public class BattleManager : MonoBehaviour
 
     public void NextTurn()
     {
+        if (player == null || enemy == null) return; // Add null check
         currentTurn++;
 
         Debug.Log($"第{currentTurn}回合开始");
@@ -138,5 +139,8 @@ public class BattleManager : MonoBehaviour
     void OnDestroy()
     {
         onPhaseChangedUnsub?.Invoke();
+        
+        // 游戏退出或重新加载时，清理所有静态事件，防止引用已销毁的对象
+        EventCenter.ClearAllEvents();
     }
 }

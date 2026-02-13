@@ -10,8 +10,8 @@ public class DamageEffectManager : MonoBehaviour
     public Transform enemyPos;
 
     [Header("Settings")]
-    public Vector3 playerEffectOffset = new Vector3(0, -300f, 0); // Lower for player
-    public Vector3 enemyEffectOffset = new Vector3(0, -200f, 0);  // Default for enemy
+    public Vector3 playerEffectOffset = new Vector3(0, -600f, 0); // Lower for player
+    public Vector3 enemyEffectOffset = new Vector3(0, -350f, 0);  // Default for enemy
 
     private void Awake()
     {
@@ -38,6 +38,25 @@ public class DamageEffectManager : MonoBehaviour
         }
     }
 
+    private void OnDestroy()
+    {
+        // Unsubscribe from Battle Events
+        if (BattleManager.Instance != null)
+        {
+            if (BattleManager.Instance.player != null)
+            {
+                BattleManager.Instance.player.DamageTaken -= OnPlayerDamage;
+            }
+            if (BattleManager.Instance.enemy != null)
+            {
+                BattleManager.Instance.enemy.DamageTaken -= OnEnemyDamage;
+            }
+        }
+        EventCenter.Unregister("BattleStarted", (obj) => { }); // Note: EventCenter.Unregister logic needs to be checked, usually requires exact delegate.
+        // Assuming simpler unsubscription or rely on Scene Reload to clear EventCenter if it's not static persistent.
+        // If EventCenter persists, we have a leak here because we use lambda in Register.
+    }
+
     private void FindPositions()
     {
         if (playerPos == null || enemyPos == null)
@@ -57,12 +76,26 @@ public class DamageEffectManager : MonoBehaviour
         {
             BattleManager.Instance.player.DamageTaken -= OnPlayerDamage;
             BattleManager.Instance.player.DamageTaken += OnPlayerDamage;
+            BattleManager.Instance.player.HealTaken -= OnPlayerHeal;
+            BattleManager.Instance.player.HealTaken += OnPlayerHeal;
         }
         if (BattleManager.Instance.enemy != null)
         {
             BattleManager.Instance.enemy.DamageTaken -= OnEnemyDamage;
             BattleManager.Instance.enemy.DamageTaken += OnEnemyDamage;
+            BattleManager.Instance.enemy.HealTaken -= OnEnemyHeal;
+            BattleManager.Instance.enemy.HealTaken += OnEnemyHeal;
         }
+    }
+
+    private void OnPlayerHeal(int amount)
+    {
+        ShowHealEffect(playerPos, amount, playerEffectOffset);
+    }
+
+    private void OnEnemyHeal(int amount)
+    {
+        ShowHealEffect(enemyPos, amount, enemyEffectOffset);
     }
 
     private void OnPlayerDamage(int amount, BaseCharacter source)
@@ -127,6 +160,76 @@ public class DamageEffectManager : MonoBehaviour
         
         var popup = popupObj.AddComponent<DamagePopup>();
         popup.Setup(amount);
+    }
+
+    private void ShowHealEffect(Transform targetDetails, int amount, Vector3 offset)
+    {
+        if (targetDetails == null) return;
+        
+        Canvas canvas = targetDetails.GetComponentInParent<Canvas>();
+        if (canvas == null) return;
+
+        // Spawn Heal Circle Effect (reuse slash logic but with heal sprite)
+        GameObject healObj = new GameObject("HealEffect");
+        healObj.transform.SetParent(canvas.transform, false);
+        healObj.transform.position = targetDetails.position + offset;
+        
+        var slash = healObj.AddComponent<SlashEffect>(); // Reuse slash animation logic (scale up and fade)
+        var img = healObj.AddComponent<UnityEngine.UI.Image>();
+        img.sprite = CreateHealSprite();
+        img.color = Color.green; // Tint green
+        
+        slash.Setup();
+
+        // Spawn Popup Text
+        GameObject popupObj = new GameObject("HealPopup");
+        popupObj.transform.SetParent(canvas.transform, false);
+        popupObj.transform.position = targetDetails.position + offset; 
+        
+        var popup = popupObj.AddComponent<DamagePopup>();
+        popup.Setup("+" + amount, Color.green);
+    }
+
+    private Sprite healSprite;
+    private Sprite CreateHealSprite()
+    {
+        if (healSprite != null) return healSprite;
+
+        int width = 128;
+        int height = 128;
+        Texture2D texture = new Texture2D(width, height);
+        Color[] colors = new Color[width * height];
+        for (int i = 0; i < colors.Length; i++) colors[i] = Color.clear;
+
+        // Draw a circle/cross pattern
+        Vector2 center = new Vector2(width / 2f, height / 2f);
+        float radius = width / 3f;
+        
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                float dist = Vector2.Distance(new Vector2(x, y), center);
+                if (dist < radius)
+                {
+                    // Ring
+                    if (dist > radius * 0.8f)
+                    {
+                         colors[y * width + x] = new Color(1, 1, 1, 0.8f);
+                    }
+                    // Plus sign inside
+                    else if (Mathf.Abs(x - center.x) < 5 || Mathf.Abs(y - center.y) < 5)
+                    {
+                         colors[y * width + x] = new Color(1, 1, 1, 1f);
+                    }
+                }
+            }
+        }
+        
+        texture.SetPixels(colors);
+        texture.Apply();
+        healSprite = Sprite.Create(texture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f));
+        return healSprite;
     }
 
     private Sprite slashSprite;

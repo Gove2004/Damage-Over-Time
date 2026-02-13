@@ -21,6 +21,7 @@ public abstract class BaseCharacter
     private float damageTakenMultiplier = 1f;
     public event Action<int, BaseCharacter> DamageTaken;
     public event Action<int, BaseCharacter> DamageDealt;
+    public event Action<int> HealTaken;
     
     public abstract void ChangeHealth(int amount);
     
@@ -72,9 +73,16 @@ public abstract class BaseCharacter
 
     protected abstract void Action();
 
-    public void EndTurn()
+    public virtual void EndTurn()
     {
         IsInTurn = false;
+        
+        // 注意：ChangeMana 会在这里被调用，所以我们可以在这之前处理一些逻辑
+        // 但对于玩家来说，我们可能需要等待 RougeUI 选择完毕后再恢复魔力
+        // 不过由于 EndTurn 是同步/立即执行的，我们需要某种机制来挂起或分步执行。
+        // 或者我们可以在 BattleManager 中控制 EndTurn 的流程。
+        // 为了支持 RougeUI 这种特殊的等待逻辑，我们可以在 Player 中重写 EndTurn。
+        
         ChangeMana(autoManaPerTurn); // 每回合结束增加自动法力值
         EventCenter.Publish("CharacterEndedTurn");
     }
@@ -181,6 +189,10 @@ public abstract class BaseCharacter
             int damage = -amount;
             DamageTaken?.Invoke(damage, source);
             source?.DamageDealt?.Invoke(damage, this);
+        }
+        else if (amount > 0)
+        {
+            HealTaken?.Invoke(amount);
         }
     }
 

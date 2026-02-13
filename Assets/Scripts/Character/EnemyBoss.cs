@@ -40,21 +40,24 @@ public class EnemyBoss : BaseCharacter
             if (amount < 0)
             {
                 health -= amount;  // Boss的生命是得分
-
-                if (health >= nextPhaseHealthThreshold)
-                {
-                    // 进入下一阶段
-                    phase++;
-
-                    autoManaPerTurn++;  // 每个阶段增加自动法力值
-
-                    nextPhaseHealthThreshold = GetThresholdForPhase(phase);  // 更新下一阶段的生命阈值
-
-                    EventCenter.Publish("EnemyBoss_PhaseChanged", phase);
-                    Debug.Log($"进入阶段 {phase}，下一阶段阈值 {nextPhaseHealthThreshold}");
-                }
+                
+                // 移除实时检测阶段变化的逻辑
+                // if (health >= nextPhaseHealthThreshold) ...
             }
         }
+    }
+    
+    public void TriggerPhaseChange()
+    {
+        // 进入下一阶段
+        phase++;
+
+        autoManaPerTurn++;  // 每个阶段增加自动法力值
+
+        nextPhaseHealthThreshold = GetThresholdForPhase(phase);  // 更新下一阶段的生命阈值
+
+        EventCenter.Publish("EnemyBoss_PhaseChanged", phase);
+        Debug.Log($"进入阶段 {phase}，下一阶段阈值 {nextPhaseHealthThreshold}");
     }
 
 

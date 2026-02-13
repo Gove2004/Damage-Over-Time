@@ -41,7 +41,7 @@ public class EventCenter : MonoBehaviour
     
     public static void Publish(string eventName) => Publish<object>(eventName, null);
     
-    private static void Unregister(string eventName, Action<object> listener)
+    public static void Unregister(string eventName, Action<object> listener)
     {
         if (events.ContainsKey(eventName))
             events[eventName].Remove(listener);
@@ -101,9 +101,14 @@ public class EventCenter : MonoBehaviour
         searchFilter = filter;
     }
     
-    public void ClearAll()
+    public static void ClearAllEvents()
     {
         events.Clear();
+    }
+    
+    public void ClearAll()
+    {
+        ClearAllEvents();
     }
     #endregion
 }
