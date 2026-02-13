@@ -441,7 +441,7 @@ public class 增援未来 : BaseCard
 }
 
 
-public class 魔力急救 : BaseCard
+public class 急救 : BaseCard
 {
     protected override int id => 1017;
 
