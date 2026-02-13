@@ -105,8 +105,8 @@ public class 吸取 : BaseCard
         dot = new Dot(user, target, duration, d =>
         {
             user.DealDamage(target, value);
-            user.ApplyHealthChange(value, user);
-        }, null, () => $"每回合对敌人造成{value}点伤害并恢复{value}点生命，剩余{dot.duration}回合");
+            user.ApplyHealthChange(value * 2, user);
+        }, null, () => $"每回合对敌人造成{value}点伤害并恢复{value * 2}点生命，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -280,7 +280,7 @@ public class 上三角 : BaseCard
             timer++;
             int damage = Mathf.Max(0, baseValue * timer);
             user.DealDamage(target, damage);
-        }, null, () => $"每回合对敌人造成{baseValue * (timer + 1)}点伤害，剩余{dot.duration}回合");
+        }, null, () => $"每回合对敌人造成{baseValue * (timer + 1)}点伤害(下回合+{baseValue})，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -709,7 +709,7 @@ public class 献祭 : BaseCard
             user.DealDamage(user, damage);
             if (target != null) user.DealDamage(target, damage);
             SacrificeBonus += 10;
-        }, null, () => $"每回合对双方造成{CurrentDamage}点伤害，剩余{dot.duration}回合");
+        }, null, () => $"每回合对双方造成{CurrentDamage}点伤害(并使献祭永久+10)，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }

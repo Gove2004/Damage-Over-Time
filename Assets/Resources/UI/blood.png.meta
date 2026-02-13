@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 6c864b178a5d29d40b4b64be08a32912
+guid: a74a175c1f88f3e448b16b98da9aa3f3
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -762503170720494998
-    second: "\u5438\u9B54_0"
+      213: -2126246720042785711
+    second: blood_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -96,43 +96,17 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: Android
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
-  - serializedVersion: 4
-    buildTarget: WebGL
-    maxTextureSize: 2048
-    resizeAlgorithm: 0
-    textureFormat: -1
-    textureCompression: 1
-    compressionQuality: 50
-    crunchedCompression: 0
-    allowsAlphaSplitting: 0
-    overridden: 0
-    ignorePlatformSupport: 0
-    androidETC2FallbackOverride: 0
-    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: "\u5438\u9B54_0"
+      name: blood_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 600
-        height: 800
+        width: 806
+        height: 1062
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -141,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: a6a8819f76b0b65f0800000000000000
-      internalID: -762503170720494998
+      spriteID: 154a20b9fdd0e72e0800000000000000
+      internalID: -2126246720042785711
       vertices: []
       indices: 
       edges: []
@@ -161,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      "\u5438\u9B54_0": -762503170720494998
+      blood_0: -2126246720042785711
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

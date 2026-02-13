@@ -84,6 +84,7 @@ public abstract class BaseCard
         if (string.IsNullOrEmpty(Description)) return Description;
         return Description
             .Replace("[费用]", Cost.ToString())
+            .Replace("[数值×2]", (Value * 2).ToString())
             .Replace("[数值/10]", (Value / 10).ToString())
             .Replace("[数值]", Value.ToString())
             .Replace("[持续时间]", Duration.ToString());

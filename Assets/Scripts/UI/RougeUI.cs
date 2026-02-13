@@ -99,10 +99,22 @@ public class RougeUI : MonoBehaviour
         
 
         // 随机三个卡牌
+        System.Collections.Generic.HashSet<string> selectedNames = new System.Collections.Generic.HashSet<string>();
         for (int i = 0; i < cardButtons.Length; i++)
         {
-            BaseCard cardData = CardFactory.GetRandomCard();
-            cardButtons[i].SetData(cardData);
+            BaseCard cardData = null;
+            int maxAttempts = 50;
+            do
+            {
+                cardData = CardFactory.GetRandomCard();
+                maxAttempts--;
+            } while (cardData != null && selectedNames.Contains(cardData.Name) && maxAttempts > 0);
+
+            if (cardData != null)
+            {
+                selectedNames.Add(cardData.Name);
+                cardButtons[i].SetData(cardData);
+            }
         }
 
         // 显示玩家牌组
