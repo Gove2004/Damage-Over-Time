@@ -16,6 +16,12 @@ public class BattleManager : MonoBehaviour
         {
             gameObject.AddComponent<GMTool>();
         }
+
+        // 自动添加伤害特效管理器
+        if (GetComponent<DamageEffectManager>() == null)
+        {
+            gameObject.AddComponent<DamageEffectManager>();
+        }
     }
 
 
@@ -105,11 +111,11 @@ public class BattleManager : MonoBehaviour
         // 轮流行动
         if (currentTurn % 2 == 1)
         {
-            player.StartTurn();
+            StartCoroutine(player.StartTurnRoutine());
         }
         else
         {
-            enemy.StartTurn();
+            StartCoroutine(enemy.StartTurnRoutine());
         }
     }
 

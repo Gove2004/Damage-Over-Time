@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 
 public abstract class BaseCharacter
@@ -32,24 +33,40 @@ public abstract class BaseCharacter
             mana = 0;
         }
     }
-    
 
     // 行动
-    public void StartTurn()
+    public IEnumerator StartTurnRoutine()
     {
         EventCenter.Publish("TurnStart", this);
 
         IsInTurn = true;
         immuneThisTurn = false;
 
-        // shiled = 0; // 每回合开始重置护盾值
         shiled = Mathf.Max(0, shiled-3);  // 另一个方案是每回合衰减3
 
+        // Async Apply Dots
+        yield return ApplyDotsRoutine();
 
-        ApplyDots();  // 回合开始应用所有Dot效果
+        if (!IsInTurn) yield break;
 
+        Action();
+    }
+
+    // Deprecated synchronous StartTurn
+    public void StartTurn()
+    {
+        // Warn: This should not be called directly by BattleManager anymore for turn logic if we want async dots.
+        // But for compatibility, we can just call the routine on a temporary runner if needed, or just run sync logic.
+        // For now, let's keep the logic but we expect BattleManager to call StartTurnRoutine.
+        // To avoid duplication, we might just have this call StartTurnRoutine via a runner if we had one.
+        // But simpler: just implement the old logic synchronously here for fallback.
+        
+        EventCenter.Publish("TurnStart", this);
+        IsInTurn = true;
+        immuneThisTurn = false;
+        shiled = Mathf.Max(0, shiled-3);
+        ApplyDots(); 
         if (!IsInTurn) return;
-
         Action();
     }
 
@@ -65,6 +82,8 @@ public abstract class BaseCharacter
 
     // DOT效果
     public List<Dot> dotBar = new List<Dot>();
+    
+    // Sync version (legacy/fallback)
     private void ApplyDots()
     {
         foreach (var effect in new List<Dot>(dotBar))
@@ -72,6 +91,42 @@ public abstract class BaseCharacter
             effect.Apply();
         }
     }
+
+    // Async version
+    private IEnumerator ApplyDotsRoutine()
+    {
+        var dotsToProcess = new List<Dot>(dotBar);
+        if (dotsToProcess.Count > 0)
+        {
+            float maxTotalDuration = 10f;
+            float delay = Mathf.Min(0.5f, maxTotalDuration / dotsToProcess.Count);
+
+            Transform targetTransform = null;
+            if (DamageEffectManager.Instance != null)
+            {
+                 // Determine transform based on character type
+                 // A bit hacky since BaseCharacter doesn't know about Transforms directly usually
+                 // But we can check against BattleManager instance
+                 if (this == BattleManager.Instance.player) targetTransform = DamageEffectManager.Instance.playerPos;
+                 else if (this == BattleManager.Instance.enemy) targetTransform = DamageEffectManager.Instance.enemyPos;
+            }
+
+            foreach (var effect in dotsToProcess)
+            {
+                // Show Description
+                if (targetTransform != null && DamageEffectManager.Instance != null)
+                {
+                    DamageEffectManager.Instance.ShowFloatingText(targetTransform, effect.description?.Invoke() ?? "", Color.yellow);
+                }
+
+                effect.Apply();
+                
+                // Wait
+                yield return new WaitForSeconds(delay);
+            }
+        }
+    }
+
     public void AddDot(Dot dotEffect)
     {
         dotBar.Add(dotEffect);
