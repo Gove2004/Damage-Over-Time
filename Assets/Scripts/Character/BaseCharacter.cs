@@ -246,4 +246,16 @@ public abstract class BaseCharacter
             Debug.LogWarning("无法使用卡牌: " + card.Name);
         }
     }
+
+    public void RemoveCard(BaseCard card)
+    {
+        if (Cards.Contains(card))
+        {
+            Cards.Remove(card);
+            if (this is Player)
+            {
+                EventCenter.Publish("Player_RemoveCard", card);
+            }
+        }
+    }
 }

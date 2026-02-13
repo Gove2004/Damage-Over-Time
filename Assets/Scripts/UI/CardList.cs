@@ -62,6 +62,11 @@ public class CardList : MonoBehaviour
             selectedCard = null;  // 出牌后取消选中状态
             PlayCard(param as BaseCard);
         });
+
+        EventCenter.Register("Player_RemoveCard", (param) =>
+        {
+            PlayCard(param as BaseCard); // 复用 PlayCard 的逻辑来移除 UI
+        });
     }
 
     void Update()

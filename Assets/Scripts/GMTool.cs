@@ -16,6 +16,7 @@ public class GMTool : MonoBehaviour
 
     private void OnGUI()
     {
+        if (!Application.isPlaying) return;
         if (BattleManager.Instance == null) return;
         windowRect.height = showPanel ? FullHeight : CollapsedHeight;
         windowRect = GUILayout.Window(0, windowRect, DrawWindow, "GM");
@@ -23,6 +24,7 @@ public class GMTool : MonoBehaviour
 
     private void DrawWindow(int windowId)
     {
+        if (!Application.isPlaying) return;
         var player = BattleManager.Instance.player;
         if (player == null) return;
         var enemy = BattleManager.Instance.enemy as EnemyBoss;

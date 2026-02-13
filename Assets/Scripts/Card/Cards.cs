@@ -83,17 +83,11 @@ public class 贪婪 : BaseCard
         Dot dot = null;
         dot = new Dot(user, user, Duration, d =>
         {
-            if (target == null || target.Cards.Count == 0) return;
-            int count = Mathf.Min(drawCount, target.Cards.Count);
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < drawCount; i++)
             {
-                int index = UnityEngine.Random.Range(0, target.Cards.Count);
-                BaseCard stolen = target.Cards[index];
-                target.Cards.RemoveAt(index);
-                user.GainCard(stolen);
-                if (target.Cards.Count == 0) break;
+                user.DrawCard(0);
             }
-        }, null, () => $"每回合随机偷取敌人的{drawCount}张卡牌，剩余{dot.duration}回合");
+        }, null, () => $"每回合抽{drawCount}张牌，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -181,10 +175,10 @@ public class 第7张牌 : BaseCard
                             if (target != null && target.Cards.Count > 0)
                             {
                                 int index = UnityEngine.Random.Range(0, target.Cards.Count);
-                                BaseCard stolenCard = target.Cards[index];
-                                target.Cards.RemoveAt(index);
-                                user.GainCard(stolenCard);
-                                stolen = true;
+                BaseCard stolenCard = target.Cards[index];
+                target.RemoveCard(stolenCard);
+                user.GainCard(stolenCard);
+                stolen = true;
                             }
                         }
                         else if (pick == 1)
@@ -286,7 +280,7 @@ public class 上三角 : BaseCard
             timer++;
             int damage = Mathf.Max(0, baseValue * timer);
             user.DealDamage(target, damage);
-        }, null, () => $"每回合对敌人造成{baseValue}×{timer}点伤害，剩余{dot.duration}回合");
+        }, null, () => $"每回合对敌人造成{baseValue * (timer + 1)}点伤害，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -360,7 +354,7 @@ public class 偷窃 : BaseCard
             {
                 int index = UnityEngine.Random.Range(0, target.Cards.Count);
                 BaseCard stolen = target.Cards[index];
-                target.Cards.RemoveAt(index);
+                target.RemoveCard(stolen);
                 user.GainCard(stolen);
                 if (target.Cards.Count == 0) break;
             }
@@ -441,7 +435,7 @@ public class 增援未来 : BaseCard
                     return;
                 }
                 user.ApplyHealthChange(value, user);
-            }, null, () => $"三回合后开始，每回合恢复{value}点生命，剩余{dot.duration}回合");
+            }, null, () => delay > 0 ? $"{delay}回合后开始，每回合恢复{value}点生命，持续{duration}回合" : $"每回合恢复{value}点生命，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }
@@ -598,17 +592,17 @@ public class 无敌金身 : BaseCard
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
         int delay = 1;
-        bool activated = false;
+        int duration = Duration;
         Dot dot = null;
-        dot = new Dot(user, user, Duration + delay, d =>
+        dot = new Dot(user, user, duration + delay, d =>
         {
-            if (!activated)
+            if (delay > 0)
             {
-                activated = true;
+                delay--;
                 return;
             }
             user.SetImmuneThisTurn(true);
-        }, null, () => $"一回合后生效，免疫伤害，剩余{dot.duration}回合");
+        }, null, () => delay > 0 ? $"{delay}回合后生效，免疫伤害，持续{duration}回合" : $"免疫伤害，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
     }
 }

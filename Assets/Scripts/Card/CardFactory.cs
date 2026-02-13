@@ -91,22 +91,33 @@ public static class CardFactory
     {
         if (allCards.Count == 0) return null;
         
-        // 定义黑名单（偷窃、回血、无敌）
-        // 偷窃类: 偷窃, 偷dot, 偷魔
-        // 回血类: 恢复, 吸取, 生命彩票, 反伤, 吸血
-        // 无敌类: 无敌金身
+        // 定义黑名单（偷窃、回血、无敌、特殊机制类）
         var bannedCards = new HashSet<string> 
         { 
-            "偷窃", "偷月", "偷魔", 
-            "恢复", "吸取", "生命彩票", "反伤", "吸血",
-            "无敌金身"
+            // 偷窃类
+            "偷窃", "偷月", "偷魔", "贪婪",
+            // 回血类
+            "恢复", "吸取", "生命彩票", "反伤", "吸血", "增援未来", "暴食",
+            // 无敌/防御类
+            "无敌金身", "逃避", "傲慢",
+            // 混合/特殊机制类
+            "七宗罪" // 包含多种随机效果（回血、偷窃、无敌等）
         };
 
-        var validCards = allCards.FindAll(c => !bannedCards.Contains(c.Name));
+        var validCards = new List<BaseCard>();
+        foreach (var card in allCards)
+        {
+            if (!bannedCards.Contains(card.Name))
+            {
+                validCards.Add(card);
+            }
+        }
         
         if (validCards.Count == 0) return null;
 
         int index = UnityEngine.Random.Range(0, validCards.Count);
+        // 使用实际对象的类型来创建新实例，而不是通过索引去allCards找
+        // 因为validCards已经是过滤后的列表了
         var type = validCards[index].GetType();
         return CreateCardInstance(type);
     }
