@@ -1,12 +1,32 @@
 using System.Collections;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
 
 public class EnemyBoss : BaseCharacter
 {
+    private CancellationTokenSource _cts;
+
+    public override void OnBattleEnd()
+    {
+        Stop();
+    }
+
+    public void Stop()
+    {
+        _cts?.Cancel();
+        _cts?.Dispose();
+        _cts = null;
+    }
+
     // 这里是敌人的行动逻辑
-    protected override void Action() => _ = AIAction();
+    protected override void Action()
+    {
+        Stop(); // Cancel previous task if any
+        _cts = new CancellationTokenSource();
+        _ = AIAction(_cts.Token);
+    }
 
     public static bool AllowPlay = true;
     public static bool AllowDraw = true;
@@ -83,7 +103,7 @@ public class EnemyBoss : BaseCharacter
 
 
     // 假装思考一下, 至少1000ms
-    private async Task WaitRandomSeconds(int min = 1000, int max = 3000)
+    private async Task WaitRandomSeconds(CancellationToken token, int min = 1000, int max = 3000)
     {
         int delay = Random.Range(min, max);
         float duration = delay / 1000f;
@@ -91,6 +111,8 @@ public class EnemyBoss : BaseCharacter
 
         while (elapsed < duration)
         {
+            if (token.IsCancellationRequested) return;
+
             if (Time.timeScale > 0)
             {
                 elapsed += Time.deltaTime;
@@ -100,11 +122,11 @@ public class EnemyBoss : BaseCharacter
     }
 
 
-    private async Task AIAction()
+    private async Task AIAction(CancellationToken token)
     {
-        await WaitRandomSeconds();
+        await WaitRandomSeconds(token);
         
-        while (true)
+        while (!token.IsCancellationRequested)
         {
             // 有10%概率直接结束回合, 这是负面的， 假装很智能的样子
             if (Random.value < 0.1f)
@@ -131,7 +153,7 @@ public class EnemyBoss : BaseCharacter
 
                     EventCenter.Publish("Enemy_PlayedCard", playable);
 
-                    await WaitRandomSeconds();
+                    await WaitRandomSeconds(token);
                     continue;
                 }
             }
@@ -142,7 +164,7 @@ public class EnemyBoss : BaseCharacter
 
                 EventCenter.Publish("Enemy_DrewCard", card);
 
-                await WaitRandomSeconds();
+                await WaitRandomSeconds(token);
                 continue;
             }
 

@@ -5,6 +5,9 @@ using UnityEngine.UI;
 public class MainUI : MonoBehaviour
 {
     public Button startBattleButton;
+    public Button introButton;
+    public Button teamButton;
+    public InfoPanel infoPanel;
     public TextMeshProUGUI maxScoreText;
 
 
@@ -12,7 +15,25 @@ public class MainUI : MonoBehaviour
     public void Start()
     {
         startBattleButton.onClick.AddListener(OnStartBattleClicked);
+        introButton.onClick.AddListener(OnIntroClicked);
+        teamButton.onClick.AddListener(OnTeamClicked);
         UpdateMaxScore();
+    }
+
+    private void OnIntroClicked()
+    {
+        if (infoPanel != null)
+        {
+            infoPanel.ShowIntro();
+        }
+    }
+
+    private void OnTeamClicked()
+    {
+        if (infoPanel != null)
+        {
+            infoPanel.ShowTeam();
+        }
     }
 
 

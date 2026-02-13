@@ -151,6 +151,19 @@ public static class CardFactory
         playerDeck[index] = newCard;
     }
 
+    /// <summary>
+    /// 重置玩家牌组为初始状态
+    /// </summary>
+    public static void ResetPlayerDeck()
+    {
+        playerDeck = new List<BaseCard>
+        {
+            new 流血(), new 流血(), new 流血(), new 流血(),
+            new 恢复(), new 恢复(), new 恢复(), new 恢复(),
+            new 入魔(), new 入魔()
+        };
+    }
+
     // 获取玩家牌组
     public static List<BaseCard> GetPlayerDeck() => playerDeck;
 

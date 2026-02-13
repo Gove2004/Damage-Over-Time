@@ -13,6 +13,8 @@ public class AudioManager : MonoBehaviour
     public AudioClip drawClip;
     public AudioClip playClip;
     public AudioClip damageClip;
+    public AudioClip playerDamageClip;
+    public AudioClip enemyDamageClip;
     public AudioClip healClip;
     public AudioClip manaClip;
 
@@ -145,11 +147,24 @@ public class AudioManager : MonoBehaviour
 
     public void RegisterClips()
     {
-        Debug.Log($"[AudioManager] Registering Clips. Draw:{drawClip!=null}, Play:{playClip!=null}, Slash:{damageClip!=null}, Heal:{healClip!=null}, Mana:{manaClip!=null}");
+        Debug.Log($"[AudioManager] Registering Clips. Draw:{drawClip!=null}, Play:{playClip!=null}, Slash:{damageClip!=null}, PlayerSlash:{playerDamageClip!=null}, EnemySlash:{enemyDamageClip!=null}, Heal:{healClip!=null}, Mana:{manaClip!=null}");
 
         if (drawClip != null) proceduralClips["Draw"] = drawClip;
         if (playClip != null) proceduralClips["Play"] = playClip;
-        if (damageClip != null) proceduralClips["Slash"] = damageClip; // Key matches "Slash" usage in DamageEffectManager
+        var playerClip = playerDamageClip != null ? playerDamageClip : damageClip;
+        var enemyClip = enemyDamageClip != null ? enemyDamageClip : damageClip;
+        if (damageClip != null)
+        {
+            proceduralClips["Slash"] = damageClip;
+        }
+        if (playerClip != null)
+        {
+            proceduralClips["斩击"] = playerClip;
+        }
+        if (enemyClip != null)
+        {
+            proceduralClips["毒液"] = enemyClip;
+        }
         if (healClip != null) proceduralClips["Heal"] = healClip;
         if (manaClip != null) proceduralClips["Mana"] = manaClip;
     }

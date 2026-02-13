@@ -99,13 +99,13 @@ public class DamageEffectManager : MonoBehaviour
     private void OnPlayerDamage(int amount, BaseCharacter source)
     {
         if (playerTransform == null) return;
-        ShowEffect(playerTransform, amount, playerEffectOffset);
+        ShowEffect(playerTransform, amount, playerEffectOffset, source);
     }
 
     private void OnEnemyDamage(int amount, BaseCharacter source)
     {
         if (enemyTransform == null) return;
-        ShowEffect(enemyTransform, amount, enemyEffectOffset);
+        ShowEffect(enemyTransform, amount, enemyEffectOffset, source);
     }
 
     public void ShowFloatingText(Transform targetDetails, string text, Color color, Vector3? offsetOverride = null)
@@ -127,11 +127,14 @@ public class DamageEffectManager : MonoBehaviour
         popup.Setup(text, color);
     }
 
-    private void ShowEffect(Transform targetDetails, int amount, Vector2 offset)
+    private void ShowEffect(Transform targetDetails, int amount, Vector2 offset, BaseCharacter source)
     {
         if (targetDetails == null) return;
-        
-        if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX("Slash");
+        bool isPlayerSource = source is Player;
+        Color effectColor = isPlayerSource ? Color.white : Color.green;
+        string sfxKey = isPlayerSource ? "斩击" : "毒液";
+
+        if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX(sfxKey);
 
         var canvas = GetCanvas();
         if (canvas == null) return;
@@ -145,6 +148,7 @@ public class DamageEffectManager : MonoBehaviour
         var slash = slashObj.AddComponent<SlashEffect>();
         var img = slashObj.AddComponent<UnityEngine.UI.Image>();
         img.sprite = CreateSlashSprite();
+        img.color = effectColor;
         slashObj.transform.rotation = Quaternion.Euler(0, 0, Random.Range(-45f, 45f));
         
         slash.Setup();

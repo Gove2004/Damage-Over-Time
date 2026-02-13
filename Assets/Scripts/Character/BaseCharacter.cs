@@ -25,6 +25,7 @@ public abstract class BaseCharacter
     
     public abstract void ChangeHealth(int amount);
     
+    public virtual void OnBattleEnd() { }
 
     public virtual void ChangeMana(int amount)
     {
@@ -90,6 +91,12 @@ public abstract class BaseCharacter
         
         ChangeMana(autoManaPerTurn); // 每回合结束增加自动法力值
         EventCenter.Publish("CharacterEndedTurn");
+    }
+
+    public void AbortTurn()
+    {
+        IsInTurn = false;
+        immuneThisTurn = false;
     }
 
 
@@ -251,7 +258,7 @@ public abstract class BaseCharacter
     public BaseCard GainRandomCard()
     {
         if (IsHandFull) return null;
-        BaseCard newCard = CardFactory.GetRandomCard();
+        BaseCard newCard = this is Player ? CardFactory.GetRandomCard() : CardFactory.GetRandomEnemyCard();
         if (newCard == null) return null;
         ApplyBuffsToCard(newCard);
         Cards.Add(newCard);

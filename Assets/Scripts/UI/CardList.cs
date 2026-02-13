@@ -193,6 +193,16 @@ public class CardList : MonoBehaviour
         }
     }
 
+    public void Clear()
+    {
+        foreach (var item in cardUIItems)
+        {
+            if (item != null) Destroy(item.gameObject);
+        }
+        cardUIItems.Clear();
+        selectedCard = null;
+    }
+
 
 
     private CardUIItem Card2UIItem(BaseCard card)

@@ -1,6 +1,9 @@
 using System;
 using System.Text;
+using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
 
 public class BattleManager : MonoBehaviour
 {
@@ -12,10 +15,15 @@ public class BattleManager : MonoBehaviour
     public Transform playerTransformRef;
     public Transform enemyTransformRef;
 
+    [Header("UI References")]
+    public GameObject gameOverPanel; // 在 Inspector 中引用，或者自动生成
+
     [Header("Audio Resources")]
     public AudioClip drawClip;
     public AudioClip playClip;
     public AudioClip damageClip;
+    public AudioClip playerDamageClip;
+    public AudioClip enemyDamageClip;
     public AudioClip healClip;
     public AudioClip manaClip;
 
@@ -58,6 +66,8 @@ public class BattleManager : MonoBehaviour
             if (drawClip != null) audioMgr.drawClip = drawClip;
             if (playClip != null) audioMgr.playClip = playClip;
             if (damageClip != null) audioMgr.damageClip = damageClip;
+            if (playerDamageClip != null) audioMgr.playerDamageClip = playerDamageClip;
+            if (enemyDamageClip != null) audioMgr.enemyDamageClip = enemyDamageClip;
             if (healClip != null) audioMgr.healClip = healClip;
             if (manaClip != null) audioMgr.manaClip = manaClip;
             
@@ -76,15 +86,30 @@ public class BattleManager : MonoBehaviour
         return currentTurn % 2 == 1;
     }
     private Action onPhaseChangedUnsub;
+    private Action onPlayerDeadUnsub;
+    private Action onCharacterEndedTurnUnsub;
 
 
     public void StartBattle()
     {
         Debug.Log("战斗开始！");
-        currentTurn = 0;
 
-        // 清理旧的事件监听
+        StopAllCoroutines();
+        player?.OnBattleEnd();
+        enemy?.OnBattleEnd();
         onPhaseChangedUnsub?.Invoke();
+        onPlayerDeadUnsub?.Invoke();
+        onCharacterEndedTurnUnsub?.Invoke();
+        Time.timeScale = 1f;
+        EnemyBoss.AllowPlay = true;
+        EnemyBoss.AllowDraw = true;
+        var gmTool = FindObjectOfType<GMTool>();
+        if (gmTool != null) gmTool.ResetEnemyAIFlags();
+
+        currentTurn = 0;
+        isEndingBattle = false;
+
+        CardFactory.ResetPlayerDeck();
 
         player = new Player();
         enemy = new EnemyBoss();
@@ -100,7 +125,6 @@ public class BattleManager : MonoBehaviour
 
         EventCenter.Publish("BattleStarted");
 
-        // 注册阶段变化监听
         onPhaseChangedUnsub = EventCenter.Register("EnemyBoss_PhaseChanged", (param) =>
         {
             if (player != null)
@@ -110,12 +134,12 @@ public class BattleManager : MonoBehaviour
             }
         });
 
-        EventCenter.Register("PlayerDead", (param) =>
+        onPlayerDeadUnsub = EventCenter.Register("PlayerDead", (param) =>
         {
             var character = param as BaseCharacter;
             EndBattle();
         });
-        EventCenter.Register("CharacterEndedTurn", (param) =>
+        onCharacterEndedTurnUnsub = EventCenter.Register("CharacterEndedTurn", (param) =>
         {
             NextTurn();
         });
@@ -125,23 +149,102 @@ public class BattleManager : MonoBehaviour
 
 
 
+    private bool isEndingBattle = false;
+
     public void EndBattle()
     {
+        if (isEndingBattle) return;
+        StartCoroutine(EndBattleRoutine());
+    }
+
+    private IEnumerator EndBattleRoutine()
+    {
+        isEndingBattle = true;
         Debug.Log("战斗结束。");
+
+        player?.OnBattleEnd();
+        enemy?.OnBattleEnd();
+        onPhaseChangedUnsub?.Invoke();
+        onPlayerDeadUnsub?.Invoke();
+        onCharacterEndedTurnUnsub?.Invoke();
+        Time.timeScale = 1f;
+
+        if (player != null) player.AbortTurn();
+        if (enemy != null) enemy.AbortTurn();
 
         EventCenter.Publish("BattleEnded");
 
+        // 显示游戏结束 UI
+        ShowGameOverUI();
+
+        yield return new WaitForSeconds(1.0f);
 
         // 结算分数
-        int score = enemy.health;
+        int score = 0;
+        if (enemy != null) score = enemy.health;
         GameManager.Instance.Save(score);
 
         // 清理战斗数据
         player = null;
         enemy = null;
 
+        // 隐藏游戏结束 UI
+        if (gameOverPanel != null) gameOverPanel.SetActive(false);
+
         // UI跳转
         GameManager.Instance.SwitchSecne(false);
+        isEndingBattle = false;
+    }
+
+    private void ShowGameOverUI()
+    {
+        if (gameOverPanel == null)
+        {
+            var battleUI = FindObjectOfType<BattleUI>();
+            Transform parent = battleUI ? battleUI.transform : FindObjectOfType<Canvas>()?.transform;
+            
+            if (parent != null)
+            {
+                var go = new GameObject("GameOverPanel");
+                go.transform.SetParent(parent, false);
+                gameOverPanel = go;
+
+                // BG
+                var img = go.AddComponent<Image>();
+                img.color = new Color(0, 0, 0, 0.8f);
+                var rect = img.rectTransform;
+                rect.anchorMin = Vector2.zero;
+                rect.anchorMax = Vector2.one;
+                rect.offsetMin = Vector2.zero;
+                rect.offsetMax = Vector2.zero;
+
+                // Text
+                var textObj = new GameObject("Text");
+                textObj.transform.SetParent(go.transform, false);
+                var text = textObj.AddComponent<TextMeshProUGUI>();
+                text.text = "游戏结束";
+                text.fontSize = 100;
+                text.alignment = TextAlignmentOptions.Center;
+                text.color = Color.white;
+                
+                var textRect = text.rectTransform;
+                textRect.anchorMin = Vector2.zero;
+                textRect.anchorMax = Vector2.one;
+                textRect.offsetMin = Vector2.zero;
+                textRect.offsetMax = Vector2.zero;
+                
+                if (battleUI != null && battleUI.turnText != null)
+                {
+                    text.font = battleUI.turnText.font;
+                }
+            }
+        }
+        
+        if (gameOverPanel != null)
+        {
+            gameOverPanel.SetActive(true);
+            gameOverPanel.transform.SetAsLastSibling();
+        }
     }
 
 

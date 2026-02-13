@@ -14,6 +14,15 @@ public class GMTool : MonoBehaviour
     private const int FullHeight = 360;
     private const int CollapsedHeight = 70;
 
+    public void ResetEnemyAIFlags()
+    {
+        enemyAllowPlay = true;
+        enemyAllowDraw = true;
+        enemyToggleInitialized = false;
+        EnemyBoss.AllowPlay = true;
+        EnemyBoss.AllowDraw = true;
+    }
+
     private void OnGUI()
     {
         if (!Application.isPlaying) return;

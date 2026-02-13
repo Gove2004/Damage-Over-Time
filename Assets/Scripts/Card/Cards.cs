@@ -85,7 +85,11 @@ public class 贪婪 : BaseCard
         {
             for (int i = 0; i < drawCount; i++)
             {
-                user.DrawCard(0);
+                var card = user.DrawCard(0);
+                if (card != null && user is Player)
+                {
+                    EventCenter.Publish("Player_DrawCard", card);
+                }
             }
         }, null, () => $"每回合抽{drawCount}张牌，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
@@ -447,7 +451,7 @@ public class 急救 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        user.ChangeMana(Value);
+        user.ApplyHealthChange(Value, user);
     }
 }
 
@@ -552,7 +556,9 @@ public class 随机彩票 : BaseCard
         int maxCount = Mathf.Max(0, Value);
         int count = UnityEngine.Random.Range(0, maxCount + 1);
         if (count == 0) return;
-        string[] names = { "攻击彩票", "生命彩票", "魔力彩票" };
+        string[] names = user is Player
+            ? new[] { "攻击彩票", "生命彩票", "魔力彩票" }
+            : new[] { "攻击彩票", "魔力彩票" };
         for (int i = 0; i < count; i++)
         {
             string name = names[UnityEngine.Random.Range(0, names.Length)];
@@ -731,7 +737,11 @@ public class 卖血 : BaseCard
             user.ApplyHealthChange(-value, user);
             for (int i = 0; i < drawCount; i++)
             {
-                user.DrawCard(0);
+                var card = user.DrawCard(0);
+                if (card != null && user is Player)
+                {
+                    EventCenter.Publish("Player_DrawCard", card);
+                }
             }
         }, null, () => $"每回合对自己造成{value}点伤害并抽{drawCount}张牌，剩余{dot.duration}回合");
         user.dotBar.Add(dot);
