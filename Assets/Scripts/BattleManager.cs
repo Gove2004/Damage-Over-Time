@@ -192,6 +192,7 @@ public class BattleManager : MonoBehaviour
         // 结算分数
         int score = 0;
         if (enemy != null) score = enemy.health;
+        if (AchievementManager.Instance != null) AchievementManager.Instance.AddScore(score);
         GameManager.Instance.Save(score);
 
         // 清理战斗数据

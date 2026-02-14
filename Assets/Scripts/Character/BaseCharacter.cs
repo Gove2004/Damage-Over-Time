@@ -38,6 +38,7 @@ public abstract class BaseCharacter
         if (amount > 0)
         {
              if (AudioManager.Instance != null) AudioManager.Instance.PlaySFX("Mana");
+             if (this is Player) EventCenter.Publish("Player_GainMana", amount);
         }
     }
 
@@ -205,6 +206,7 @@ public abstract class BaseCharacter
         else if (amount > 0)
         {
             HealTaken?.Invoke(amount);
+            if (this is Player) EventCenter.Publish("Player_Heal", amount);
         }
     }
 

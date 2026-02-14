@@ -6,6 +6,8 @@ public class InfoPanel : MonoBehaviour
 {
     public GameObject introObj;
     public GameObject teamObj;
+    public GameObject achievementObj;
+    public AchievementsPanel achievementsPanel;
     public Button closeButton;
 
     private void Start()
@@ -20,6 +22,7 @@ public class InfoPanel : MonoBehaviour
         gameObject.SetActive(true);
         if (introObj != null) introObj.SetActive(true);
         if (teamObj != null) teamObj.SetActive(false);
+        if (achievementObj != null) achievementObj.SetActive(false);
     }
 
     public void ShowTeam()
@@ -27,10 +30,35 @@ public class InfoPanel : MonoBehaviour
         gameObject.SetActive(true);
         if (introObj != null) introObj.SetActive(false);
         if (teamObj != null) teamObj.SetActive(true);
+        if (achievementObj != null) achievementObj.SetActive(false);
+    }
+
+    public void ShowAchievements()
+    {
+        gameObject.SetActive(true);
+        if (introObj != null) introObj.SetActive(false);
+        if (teamObj != null) teamObj.SetActive(false);
+        EnsureAchievementReferences();
+        if (achievementObj != null) achievementObj.SetActive(true);
+        if (achievementsPanel != null) achievementsPanel.Refresh();
     }
 
     public void ClosePanel()
     {
         gameObject.SetActive(false);
+    }
+
+    private void EnsureAchievementReferences()
+    {
+        if (achievementObj == null)
+        {
+            var child = transform.Find("成就面板");
+            if (child != null) achievementObj = child.gameObject;
+        }
+
+        if (achievementsPanel == null && achievementObj != null)
+        {
+            achievementsPanel = achievementObj.GetComponent<AchievementsPanel>();
+        }
     }
 }
