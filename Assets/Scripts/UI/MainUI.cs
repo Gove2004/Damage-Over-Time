@@ -9,7 +9,7 @@ public class MainUI : MonoBehaviour
     public Button teamButton;
     public InfoPanel infoPanel;
     public TextMeshProUGUI maxScoreText;
-
+    public TMP_Dropdown dropdown;
 
 
     public void Start()
@@ -18,6 +18,7 @@ public class MainUI : MonoBehaviour
         introButton.onClick.AddListener(OnIntroClicked);
         teamButton.onClick.AddListener(OnTeamClicked);
         
+        dropdown.onValueChanged.AddListener(OnDropdownValueChanged);
     }
 
     public void OnEnable()
@@ -50,5 +51,13 @@ public class MainUI : MonoBehaviour
     public void OnStartBattleClicked()
     {
         GameManager.Instance.SwitchSecne(true);
+    }
+
+    public void OnDropdownValueChanged(int index)
+    {
+        // 这里可以根据index来设置不同的选项
+        Debug.Log($"Dropdown value changed: {index}");
+
+        GameManager.Instance.SetDiff(index+1);
     }
 }

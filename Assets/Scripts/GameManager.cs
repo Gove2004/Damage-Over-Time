@@ -104,4 +104,18 @@ public class GameManager : MonoBehaviour
     }
 
     #endregion
+
+
+    #region 难度
+    // 没有采用配置表
+    // 建议全局搜索 "GameManager.Instance.difficultyLevel" 查看用法
+    // 忘了用枚举，直接用整数了，1-3分别代表简单、困难、地狱
+    public int difficultyLevel { get; private set; } = 1;  // 默认难度为1
+    
+    public void SetDiff(int diff)
+    {
+        
+        difficultyLevel = diff;
+    }
+    #endregion
 }
