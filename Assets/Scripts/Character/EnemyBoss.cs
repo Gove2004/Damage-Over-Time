@@ -35,8 +35,8 @@ public class EnemyBoss : BaseCharacter
     {
         // 初始化敌人属性
         health = 0;
-        mana = 3;
-        autoManaPerTurn = 3;
+        mana = 1;
+        autoManaPerTurn = 1;  // 初始Boss比较弱
     }
 
 
@@ -83,21 +83,14 @@ public class EnemyBoss : BaseCharacter
 
     private int GetThresholdForPhase(int phase)
     {
-        // // 根据阶段返回不同的生命阈值
-        // switch (phase)
-        // {
-        //     case 0: return 10;
-        //     case 1: return 25;
-        //     case 2: return 50;
-        //     case 3: return 100;
-        //     case 4: return 250;
-        //     case 5: return 500;
-        //     case 6: return 1000;
-        //     default: return 1000 * (int)Mathf.Pow(2, phase - 6);  // 后续阶段每次翻倍
-        // }
+        if (phase <= 1) return 10;
+        if (phase == 2) return 25;
+        if (phase == 3) return 50;
+        if (phase == 4) return 100;
+        if (phase <= 13) return 100 * (phase - 3);
 
-
-        return 50 * (int)Mathf.Pow(2, phase - 1);  // 姑且50一个阶段
+        int n = phase - 13;
+        return 1000 + 100 * (n * (n + 3) / 2);
     }
 
 
