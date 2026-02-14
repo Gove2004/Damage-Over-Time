@@ -78,6 +78,8 @@ public class DotShowList : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         }
     }
 
+    #region Drag and Resize
+// 安卓禁用
     public void OnBeginDrag(PointerEventData eventData)
     {
         if (rootRect == null) return;
@@ -139,6 +141,7 @@ public class DotShowList : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndD
         isResizing = false;
         lastDragTime = Time.unscaledTime;
     }
+    #endregion
 
     public void OnPointerDown(PointerEventData eventData)
     {

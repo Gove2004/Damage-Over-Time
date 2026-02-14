@@ -190,9 +190,13 @@ public static class CardFactory
 
     public static void AddRandomCardToEnemyDeck()
     {
-        var card = GetRandomEnemyCard();
-        if (card == null) return;
-        enemyDeck.Add(card);
+        // 根据难度等级添加更多卡牌
+        for (int i = 0; i < GameManager.Instance.difficultyLevel; i++)
+        {
+            var card = GetRandomEnemyCard();
+            if (card == null) return;
+            enemyDeck.Add(card);
+        }
     }
 
 }

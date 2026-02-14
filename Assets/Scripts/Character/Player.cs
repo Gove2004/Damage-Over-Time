@@ -9,9 +9,9 @@ public class Player : BaseCharacter
     public Player()
     {
         // 初始化玩家属性
-        health = 250;
-        mana = 3;
-        autoManaPerTurn = 3;
+        health = 50 * (4 - GameManager.Instance.difficultyLevel);  // 难度系数影响玩家初始生命
+        mana = GameManager.Instance.difficultyLevel == 3 ? 2 : 3;  // 最难模式下，只有2
+        autoManaPerTurn = GameManager.Instance.difficultyLevel == 3 ? 2 : 3;  // 最难模式下，每回合增加2
     }
 
 

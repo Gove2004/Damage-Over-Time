@@ -6,7 +6,7 @@ using UnityEngine;
 
 public static class CardDatabase
 {
-    [System.Serializable]
+    [Serializable]
     public class CardData
     {
         public int id;
@@ -19,7 +19,7 @@ public static class CardDatabase
         public string remark;
     }
     
-    private static Dictionary<int, CardData> cardDataDict = new Dictionary<int, CardData>();
+    private static readonly Dictionary<int, CardData> cardDataDict = new();
     
     // 硬编码的CSV相对路径
     private const string CSV_RELATIVE_PATH = "cards.csv";
@@ -35,20 +35,86 @@ public static class CardDatabase
     {
         try
         {
-            string fullPath = Path.Combine(Application.streamingAssetsPath, CSV_RELATIVE_PATH);
+            string csvContent;
+
+            #if UNITY_ANDROID && !UNITY_EDITOR
+            // Android: 需要先从StreamingAssets复制到persistentDataPath
+            string persistentPath = Path.Combine(Application.persistentDataPath, CSV_RELATIVE_PATH);
             
+            if (!File.Exists(persistentPath))
+            {
+                // 确保目录存在
+                string persistentDir = Application.persistentDataPath;
+                if (!Directory.Exists(persistentDir))
+                {
+                    Directory.CreateDirectory(persistentDir);
+                }
+                
+                // 从StreamingAssets复制文件到persistentDataPath
+                string streamingPath = Path.Combine(Application.streamingAssetsPath, CSV_RELATIVE_PATH);
+                WWW loadWWW = new WWW(streamingPath);
+                
+                // 等待加载完成（带超时保护）
+                float timeout = 30f;
+                float startTime = Time.realtimeSinceStartup;
+                while (!loadWWW.isDone && (Time.realtimeSinceStartup - startTime) < timeout)
+                {
+                    System.Threading.Thread.Sleep(10);
+                }
+                
+                if (!loadWWW.isDone)
+                {
+                    Debug.LogError($"加载CSV文件超时（{timeout}s）");
+                    return;
+                }
+                
+                if (!string.IsNullOrEmpty(loadWWW.error))
+                {
+                    Debug.LogError($"加载CSV文件失败: {loadWWW.error}");
+                    return;
+                }
+                
+                // 写入文件
+                try
+                {
+                    File.WriteAllBytes(persistentPath, loadWWW.bytes);
+                    Debug.Log($"CSV文件已复制到: {persistentPath}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"写入CSV文件失败: {ex.Message}");
+                    return;
+                }
+            }
+            else
+            {
+                Debug.Log($"CSV文件已在本地缓存: {persistentPath}");
+            }
+            
+            csvContent = File.ReadAllText(persistentPath);
+            #else
+            // 其他平台: 直接从StreamingAssets读取
+            string fullPath = Path.Combine(Application.streamingAssetsPath, CSV_RELATIVE_PATH);
             if (!File.Exists(fullPath))
             {
                 Debug.LogError($"CSV文件不存在: {fullPath}");
                 return;
             }
+            csvContent = File.ReadAllText(fullPath);
+            #endif
             
-            string csvContent = File.ReadAllText(fullPath);
-            ParseCsvContent(csvContent);
+            if (!string.IsNullOrEmpty(csvContent))
+            {
+                ParseCsvContent(csvContent);
+            }
+            else
+            {
+                Debug.LogError("CSV文件内容为空");
+            }
         }
         catch (Exception e)
         {
-            Debug.LogError($"加载卡牌数据失败: {e.Message}");
+            Debug.LogError($"加载卡牌数据失败: {e.Message}\n{e.StackTrace}");
         }
     }
     
@@ -57,7 +123,7 @@ public static class CardDatabase
     {
         cardDataDict.Clear();
         
-        using (StringReader reader = new StringReader(csvContent))
+        using (StringReader reader = new(csvContent))
         {
             string line;
             bool isFirstLine = true;
@@ -74,20 +140,38 @@ public static class CardDatabase
                 
                 // 解析CSV行
                 string[] fields = ParseCsvLine(line);
-                if (fields.Length < 8) continue;
+                if (fields.Length < 8)
+                {
+                    Debug.LogWarning($"CSV行字段不足，跳过: {line}");
+                    continue;
+                }
                 if (string.IsNullOrWhiteSpace(fields[0])) continue;
                 
-                int costValue = 0;
-                int valueValue = 0;
-                int durationValue = 0;
-                int.TryParse(fields[2], out costValue);
-                int.TryParse(fields[3], out valueValue);
-                int.TryParse(fields[4], out durationValue);
-
                 // 创建卡牌数据对象
-                CardData data = new CardData
+                if (!int.TryParse(fields[0], out int idValue))
                 {
-                    id = int.Parse(fields[0]),
+                    Debug.LogWarning($"卡牌ID解析失败: {fields[0]}");
+                    continue;
+                }
+                if (!int.TryParse(fields[2], out int costValue))
+                {
+                    Debug.LogWarning($"卡牌成本解析失败，ID={idValue}: {fields[2]}");
+                    continue;
+                }
+                if (!int.TryParse(fields[3], out int valueValue))
+                {
+                    Debug.LogWarning($"卡牌价值解析失败，ID={idValue}: {fields[3]}");
+                    continue;
+                }
+                if (!int.TryParse(fields[4], out int durationValue))
+                {
+                    Debug.LogWarning($"卡牌持续时间解析失败，ID={idValue}: {fields[4]}");
+                    continue;
+                }
+                
+                CardData data = new()
+                {
+                    id = idValue,
                     name = fields[1],
                     cost = costValue,
                     value = valueValue,
@@ -108,8 +192,13 @@ public static class CardDatabase
     // 解析CSV行（简单实现）
     private static string[] ParseCsvLine(string line)
     {
-        // 简单分割（适用于没有逗号的字段）
-        return line.Split(',');
+        // 简单分割并去除字段两端空白（适用于没有逗号的字段）
+        string[] fields = line.Split(',');
+        for (int i = 0; i < fields.Length; i++)
+        {
+            fields[i] = fields[i].Trim();
+        }
+        return fields;
         
         /* 如果需要处理引号内的逗号，可以使用更复杂的解析：
         List<string> fields = new List<string>();
