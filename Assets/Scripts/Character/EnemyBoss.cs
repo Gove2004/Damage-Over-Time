@@ -40,7 +40,7 @@ public class EnemyBoss : BaseCharacter
     }
 
 
-    public int phase = 0;  // 当前阶段
+    public int phase = 1;  // 当前阶段
     public int nextPhaseHealthThreshold = 10;  // 下一阶段的生命阈值
     public override void ChangeHealth(int amount)
     {
