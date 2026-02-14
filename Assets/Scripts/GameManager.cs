@@ -8,13 +8,13 @@ public class GameManager : MonoBehaviour
     {
         Instance = this;
 
-
+        Load(); // 加载存档
     }
 
 
     void Start()
     {
-        Load();
+        
         SwitchSecne(false); // 默认进入主界面
     }
 
@@ -33,6 +33,7 @@ public class GameManager : MonoBehaviour
 
     public void Save(int score)
     {
+        Debug.Log($"Saving score: {score}, current maxScore: {maxScore}");
         if (score > maxScore)
         {
             maxScore = score;
