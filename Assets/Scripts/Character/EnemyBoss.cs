@@ -89,7 +89,9 @@ public class EnemyBoss : BaseCharacter
         // }
         // DamageEffectManager.Instance.ShowFloatingText(targetTransform, $"第 {phase} 阶段 : {nextPhaseHealthThreshold}\nBoss每回合魔力恢复+1", Color.red);
 
-        
+
+        CardFactory.AddRandomCardToEnemyDeck();
+
         Debug.Log($"进入阶段 {phase}，下一阶段阈值 {nextPhaseHealthThreshold}");
     }
 
@@ -110,10 +112,20 @@ public class EnemyBoss : BaseCharacter
 
 
 
-    // 假装思考一下, 至少1000ms
+    private float GetAISpeedScale()
+    {
+        float manaFactor = Mathf.InverseLerp(3f, 12f, mana);
+        float handFactor = Mathf.InverseLerp(3f, 10f, Cards.Count);
+        float t = Mathf.Clamp01(Mathf.Max(manaFactor, handFactor));
+        return Mathf.Lerp(1f, 0.35f, t);
+    }
+
     private async Task WaitRandomSeconds(CancellationToken token, int min = 1000, int max = 3000)
     {
-        int delay = Random.Range(min, max);
+        float scale = GetAISpeedScale();
+        int scaledMin = Mathf.Max(200, Mathf.RoundToInt(min * scale));
+        int scaledMax = Mathf.Max(scaledMin + 50, Mathf.RoundToInt(max * scale));
+        int delay = Random.Range(scaledMin, scaledMax);
         float duration = delay / 1000f;
         float elapsed = 0f;
 
