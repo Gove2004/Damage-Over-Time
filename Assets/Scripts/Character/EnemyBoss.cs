@@ -40,8 +40,8 @@ public class EnemyBoss : BaseCharacter
     }
 
 
-    public int phase = 0;  // 当前阶段
-    public int nextPhaseHealthThreshold = 10;  // 下一阶段的生命阈值
+    public int phase = 1;  // 当前阶段
+    public int nextPhaseHealthThreshold = GetThresholdForPhase(1);  // 下一阶段的生命阈值
     public override void ChangeHealth(int amount)
     {
         // 如果是治疗效果，转为护盾
@@ -74,16 +74,31 @@ public class EnemyBoss : BaseCharacter
 
         autoManaPerTurn++;  // 每个阶段增加自动法力值
 
-        nextPhaseHealthThreshold = GetThresholdForPhase(phase);  // 更新下一阶段的生命阈值
+        EventCenter.Publish("EnemyBoss_PhaseChanged", phase);  // 提前发布事件，让玩家先知道阶段提升了，可能会有一些反应措施
 
-        EventCenter.Publish("EnemyBoss_PhaseChanged", phase);
+        nextPhaseHealthThreshold = GetThresholdForPhase(phase);  // 更新下一阶段的生命阈值
+        // 增加阶段提示
+        // Transform targetTransform = null;
+        // if (DamageEffectManager.Instance != null)
+        // {
+        //         // Determine transform based on character type
+        //         // A bit hacky since BaseCharacter doesn't know about Transforms directly usually
+        //         // But we can check against BattleManager instance
+        //     if (this == BattleManager.Instance.player) targetTransform = DamageEffectManager.Instance.playerTransform;
+        //     else if (this == BattleManager.Instance.enemy) targetTransform = DamageEffectManager.Instance.enemyTransform;
+        // }
+        // DamageEffectManager.Instance.ShowFloatingText(targetTransform, $"第 {phase} 阶段 : {nextPhaseHealthThreshold}\nBoss每回合魔力恢复+1", Color.red);
+
+        
         Debug.Log($"进入阶段 {phase}，下一阶段阈值 {nextPhaseHealthThreshold}");
     }
 
 
-    private int GetThresholdForPhase(int phase)
+    private static int GetThresholdForPhase(int phase)
     {
-        if (phase <= 1) return 10;
+        // 这里定义每个阶段的生命阈值，可以根据需要调整
+        // 初始就是第一阶段
+        if (phase == 1) return 10; // 第一阶段没有特殊要求
         if (phase == 2) return 25;
         if (phase == 3) return 50;
         if (phase == 4) return 100;
