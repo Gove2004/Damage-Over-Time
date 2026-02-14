@@ -12,7 +12,8 @@ public class InfoPanel : MonoBehaviour
 
     private void Start()
     {
-        closeButton.onClick.AddListener(ClosePanel);
+        EnsureReferences();
+        if (closeButton != null) closeButton.onClick.AddListener(ClosePanel);
         // 初始时隐藏面板，除非已经在编辑器中设置为隐藏
         gameObject.SetActive(false);
     }
@@ -59,6 +60,25 @@ public class InfoPanel : MonoBehaviour
         if (achievementsPanel == null && achievementObj != null)
         {
             achievementsPanel = achievementObj.GetComponent<AchievementsPanel>();
+        }
+    }
+
+    private void EnsureReferences()
+    {
+        if (closeButton == null)
+        {
+            var buttons = GetComponentsInChildren<Button>(true);
+            foreach (var button in buttons)
+            {
+                if (button == null) continue;
+                var name = button.gameObject.name;
+                if (name == "Close" || name == "关闭" || name == "closeButton")
+                {
+                    closeButton = button;
+                    break;
+                }
+            }
+            if (closeButton == null && buttons.Length == 1) closeButton = buttons[0];
         }
     }
 }
