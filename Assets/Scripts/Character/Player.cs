@@ -9,7 +9,7 @@ public class Player : BaseCharacter
     public Player()
     {
         // 初始化玩家属性
-        health = 100;
+        health = 250;
         mana = 3;
         autoManaPerTurn = 3;
     }

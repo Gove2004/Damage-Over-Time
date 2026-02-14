@@ -294,7 +294,7 @@ public abstract class BaseCharacter
         }
         else
         {  // 敌人直接随机生成卡牌
-            baseCard = CardFactory.GetRandomEnemyCard();
+            baseCard = CardFactory.DrawCardFromEnemyDeck();
         }
         if (baseCard == null) return null;
         ApplyBuffsToCard(baseCard);

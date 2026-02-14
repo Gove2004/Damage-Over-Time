@@ -335,7 +335,9 @@ public class 超频 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        user.ApplyOverclock(2);
+        int factor = Value;
+        if (factor <= 1) return;
+        user.ApplyOverclock(factor);
     }
 }
 
@@ -451,7 +453,8 @@ public class 急救 : BaseCard
 
     public override void Execute(BaseCharacter user, BaseCharacter target)
     {
-        user.ApplyHealthChange(Value, user);
+        user.ChangeMana(Value);
+        user.ApplyHealthChange(Value * 20, user);
     }
 }
 

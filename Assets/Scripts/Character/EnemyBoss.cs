@@ -76,6 +76,8 @@ public class EnemyBoss : BaseCharacter
 
         nextPhaseHealthThreshold = GetThresholdForPhase(phase);  // 更新下一阶段的生命阈值
 
+        CardFactory.AddRandomCardToEnemyDeck();
+
         EventCenter.Publish("EnemyBoss_PhaseChanged", phase);
         Debug.Log($"进入阶段 {phase}，下一阶段阈值 {nextPhaseHealthThreshold}");
     }
@@ -97,15 +99,32 @@ public class EnemyBoss : BaseCharacter
         // }
 
 
-        return 50 * (int)Mathf.Pow(2, phase - 1);  // 姑且50一个阶段
+        if (phase <= 1) return 10;
+        if (phase == 2) return 25;
+        if (phase == 3) return 50;
+        if (phase == 4) return 100;
+        if (phase <= 13) return 100 * (phase - 3);
+
+        int n = phase - 13;
+        return 1000 + 100 * (n * (n + 3) / 2);
     }
 
 
 
-    // 假装思考一下, 至少1000ms
+    private float GetAISpeedScale()
+    {
+        float manaFactor = Mathf.InverseLerp(3f, 12f, mana);
+        float handFactor = Mathf.InverseLerp(3f, 10f, Cards.Count);
+        float t = Mathf.Clamp01(Mathf.Max(manaFactor, handFactor));
+        return Mathf.Lerp(1f, 0.35f, t);
+    }
+
     private async Task WaitRandomSeconds(CancellationToken token, int min = 1000, int max = 3000)
     {
-        int delay = Random.Range(min, max);
+        float scale = GetAISpeedScale();
+        int scaledMin = Mathf.Max(200, Mathf.RoundToInt(min * scale));
+        int scaledMax = Mathf.Max(scaledMin + 50, Mathf.RoundToInt(max * scale));
+        int delay = Random.Range(scaledMin, scaledMax);
         float duration = delay / 1000f;
         float elapsed = 0f;
 

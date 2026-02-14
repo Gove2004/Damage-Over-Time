@@ -110,6 +110,7 @@ public class BattleManager : MonoBehaviour
         isEndingBattle = false;
 
         CardFactory.ResetPlayerDeck();
+        CardFactory.ResetEnemyDeck();
 
         player = new Player();
         enemy = new EnemyBoss();
@@ -143,6 +144,15 @@ public class BattleManager : MonoBehaviour
         {
             NextTurn();
         });
+
+        for (int i = 0; i < 3; i++)
+        {
+            var card = player.DrawCard(0);
+            if (card != null)
+            {
+                EventCenter.Publish("Player_DrawCard", card);
+            }
+        }
 
         NextTurn();
     }

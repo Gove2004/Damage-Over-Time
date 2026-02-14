@@ -83,6 +83,17 @@ public static class CardFactory
         return CreateCardInstance(type);
     }
 
+    private static HashSet<string> GetEnemyBannedCards()
+    {
+        return new HashSet<string>
+        {
+            "偷窃", "偷月", "偷魔",
+            "恢复", "吸取", "生命彩票", "反伤", "吸血", "增援未来", "暴食", "急救",
+            "无敌金身", "逃避", "傲慢",
+            "七宗罪"
+        };
+    }
+
     /// <summary>
     /// 随机获取一张敌人可用的卡牌（排除偷窃、回血、无敌类）
     /// </summary>
@@ -91,19 +102,7 @@ public static class CardFactory
     {
         if (allCards.Count == 0) return null;
         
-        // 定义黑名单（偷窃、回血、无敌、特殊机制类）
-        var bannedCards = new HashSet<string> 
-        { 
-            // 偷窃类
-            "偷窃", "偷月", "偷魔",
-            // 回血类
-            "恢复", "吸取", "生命彩票", "反伤", "吸血", "增援未来", "暴食", "急救",
-            // 无敌/防御类
-            "无敌金身", "逃避", "傲慢",
-            // 混合/特殊机制类
-            "七宗罪" // 包含多种随机效果（回血、偷窃、无敌等）
-        };
-
+        var bannedCards = GetEnemyBannedCards();
         var validCards = new List<BaseCard>();
         foreach (var card in allCards)
         {
@@ -116,8 +115,6 @@ public static class CardFactory
         if (validCards.Count == 0) return null;
 
         int index = UnityEngine.Random.Range(0, validCards.Count);
-        // 使用实际对象的类型来创建新实例，而不是通过索引去allCards找
-        // 因为validCards已经是过滤后的列表了
         var type = validCards[index].GetType();
         return CreateCardInstance(type);
     }
@@ -166,5 +163,36 @@ public static class CardFactory
 
     // 获取玩家牌组
     public static List<BaseCard> GetPlayerDeck() => playerDeck;
+
+
+    private static List<BaseCard> enemyDeck = new()
+    {
+        new 流血(),
+        new 入魔()
+    };
+
+    public static void ResetEnemyDeck()
+    {
+        enemyDeck = new List<BaseCard>
+        {
+            new 流血(),
+            new 入魔()
+        };
+    }
+
+    public static BaseCard DrawCardFromEnemyDeck()
+    {
+        if (enemyDeck.Count == 0) return null;
+        int index = UnityEngine.Random.Range(0, enemyDeck.Count);
+        var card = enemyDeck[index];
+        return CreateCardInstance(card.GetType());
+    }
+
+    public static void AddRandomCardToEnemyDeck()
+    {
+        var card = GetRandomEnemyCard();
+        if (card == null) return;
+        enemyDeck.Add(card);
+    }
 
 }
