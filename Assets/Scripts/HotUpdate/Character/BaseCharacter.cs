@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DG.Tweening;
 using GoveKits.Runtime.Unit;
 using UnityEngine;
 
@@ -25,6 +26,7 @@ public abstract class BaseCharacter : UnitBehaviour
     public int PendingTechCardDamageBonus { get; private set; }
     public int PendingTechCardDamageBonusUses { get; private set; }
     private bool isResolvingHookEffect;
+    public bool isDotDamage;
 
     public List<BaseCard> HandCards { get; } = new List<BaseCard>();
     public List<BaseCard> DeckCards { get; } = new List<BaseCard>();
@@ -88,6 +90,7 @@ public abstract class BaseCharacter : UnitBehaviour
     {
         if (amount <= 0) return;
         Attributes.ChangeBase(StaticString.属性.法力, amount);
+        AudioManager.Instance?.PlaySound("回蓝");
     }
 
     public bool SpendMana(int amount)
@@ -119,6 +122,10 @@ public abstract class BaseCharacter : UnitBehaviour
         Attributes.ChangeBase(StaticString.属性.生命, -amount);
         DamageTakenThisTurn += amount;
         LastDamageSourceThisTurn = CurrentSourceCharacter;
+        AudioManager.Instance?.PlaySound(isDotDamage ? "毒液" : "斩击");
+        isDotDamage = false;
+        RedSlashEffect.Create().Apply(this);
+        ShakeCamera();
         TriggerHookEffect(HookTiming.WhenHurt);
     }
 
@@ -127,6 +134,8 @@ public abstract class BaseCharacter : UnitBehaviour
         amount = Mathf.Max(0, amount);
         if (amount <= 0) return;
         Attributes.ChangeBase(StaticString.属性.生命, amount);
+        AudioManager.Instance?.PlaySound("回血");
+        GreenSlashEffect.Create().Apply(this);
         TriggerHookEffect(HookTiming.WhenHeal);
     }
 
@@ -195,6 +204,7 @@ public abstract class BaseCharacter : UnitBehaviour
         {
             TechCardsPlayedThisTurn++;
         }
+        AudioManager.Instance?.PlaySound("出牌");
         TriggerHookEffect(HookTiming.WhenUseCard);
         card.PostUse(this, resolvedTarget);
         card.RuntimeCost = originalRuntimeCost;
@@ -232,6 +242,7 @@ public abstract class BaseCharacter : UnitBehaviour
             HandCards.Add(card);
         }
 
+        AudioManager.Instance?.PlaySound("抽牌");
         NotifyHandChanged();
     }
 
@@ -547,6 +558,15 @@ public abstract class BaseCharacter : UnitBehaviour
     private void NotifyHandChanged()
     {
         OnHandChanged?.Invoke(this);
+    }
+
+    private static void ShakeCamera()
+    {
+        Camera cam = Camera.main;
+        if (cam != null)
+        {
+            cam.transform.DOShakePosition(0.15f, 0.2f, 10, 90);
+        }
     }
 
     #region Hook Timing Effect

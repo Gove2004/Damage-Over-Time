@@ -35,6 +35,7 @@ public class LevelSelect : MonoBehaviour, IPointerClickHandler
 
     public void OnPointerClick(PointerEventData eventData)
     {
+        AudioManager.Instance?.PlaySound("UI");
         if (!GameCore.HasActiveRun())
         {
             GameCore.StartNewRun();

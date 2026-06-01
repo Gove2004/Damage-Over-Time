@@ -105,7 +105,11 @@ public class 诅咒 : BaseCard
 
     public override void OnUse(BaseCharacter user, BaseCharacter target)
     {
-        target.AddHookEffect(BaseCharacter.HookTiming.WhenUseCard, () => HurtEffect.Create().Setup(Value1, user, target), Value2);
+        target.AddHookEffect(BaseCharacter.HookTiming.WhenUseCard, () =>
+        {
+            target.isDotDamage = true;
+            return HurtEffect.Create().Setup(Value1, user, target);
+        }, Value2);
     }
 }
 

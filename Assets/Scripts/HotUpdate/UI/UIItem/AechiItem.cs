@@ -45,7 +45,7 @@ public class AechiItem : MonoBehaviour
         if (purchaseButton != null)
         {
             purchaseButton.interactable = true;
-            purchaseButton.onClick.AddListener(OnPurchaseClicked);
+            purchaseButton.onClick.AddListener(AudioManager.Instance.PlayOnClick(OnPurchaseClicked));
         }
 
         if (buttonText != null)

@@ -11,7 +11,7 @@ public class AudioManager : MonoSingleton<AudioManager>
     {
         if (!audioClips.ContainsKey(name))
         {
-            AudioClip clip = ResCore.LoadAssetSync<AudioClip>($"Audio/{name}").GetAssetObject<AudioClip>();
+            AudioClip clip = ResCore.LoadAssetSync<AudioClip>(name).GetAssetObject<AudioClip>();
             if (clip != null)
             {
                 audioClips[name] = clip;
@@ -23,10 +23,6 @@ public class AudioManager : MonoSingleton<AudioManager>
                 return null;
             }
         }
-        else
-        {
-            LogCore.Info("AudioManager", $"Audio clip '{name}' already loaded.");
-        }
         return audioClips[name];
     }
 
@@ -37,7 +33,6 @@ public class AudioManager : MonoSingleton<AudioManager>
         if (clip != null)
         {
             AudioCore.PlayDynamic(AudioChannel.SFX, clip);
-            LogCore.Info("AudioManager", $"Playing sound: {soundName}");
         }
     }
 
@@ -48,8 +43,16 @@ public class AudioManager : MonoSingleton<AudioManager>
         if (clip != null)
         {
             AudioCore.PlayBGM(clip);
-            LogCore.Info("AudioManager", $"Playing BGM: {bgmName}");
         }
+    }
+
+    public UnityEngine.Events.UnityAction PlayOnClick(UnityEngine.Events.UnityAction callback)
+    {
+        return () =>
+        {
+            PlaySound("UI");
+            callback();
+        };
     }
 
 }

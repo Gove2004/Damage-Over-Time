@@ -6,7 +6,11 @@ public class 流血 : BaseCard
 
     public override void OnUse(BaseCharacter user, BaseCharacter target)
     {
-        target.AddHookEffect(BaseCharacter.HookTiming.WhenStartTurn, () => HurtEffect.Create().Setup(Value1, user, target), Value2);
+        target.AddHookEffect(BaseCharacter.HookTiming.WhenStartTurn, () =>
+        {
+            target.isDotDamage = true;
+            return HurtEffect.Create().Setup(Value1, user, target);
+        }, Value2);
     }
 }
 
@@ -105,7 +109,11 @@ public class 倒计时 : BaseCard
 
     public override void OnUse(BaseCharacter user, BaseCharacter target)
     {
-        target.AddHookEffect(BaseCharacter.HookTiming.WhenEndTurn, () => HurtEffect.Create().Setup(Value1, user, target), Value2);
+        target.AddHookEffect(BaseCharacter.HookTiming.WhenEndTurn, () =>
+        {
+            target.isDotDamage = true;
+            return HurtEffect.Create().Setup(Value1, user, target);
+        }, Value2);
     }
 }
 

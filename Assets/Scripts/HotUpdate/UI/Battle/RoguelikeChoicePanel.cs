@@ -39,17 +39,17 @@ public class RoguelikeChoicePanel : MonoBehaviour
 
         if (addCardButton != null)
         {
-            addCardButton.onClick.AddListener(OnAddCardClicked);
+            addCardButton.onClick.AddListener(AudioManager.Instance.PlayOnClick(OnAddCardClicked));
         }
 
         if (removeCardButton != null)
         {
-            removeCardButton.onClick.AddListener(OnRemoveCardClicked);
+            removeCardButton.onClick.AddListener(AudioManager.Instance.PlayOnClick(OnRemoveCardClicked));
         }
 
         if (skipButton != null)
         {
-            skipButton.onClick.AddListener(OnSkipClicked);
+            skipButton.onClick.AddListener(AudioManager.Instance.PlayOnClick(OnSkipClicked));
         }
 
         ShowRound();
@@ -154,6 +154,7 @@ public class RoguelikeChoicePanel : MonoBehaviour
         {
             btn.onClick.AddListener(() =>
             {
+                AudioManager.Instance?.PlaySound("UI");
                 AddCardToDeck(config.id);
                 currentRound++;
                 ShowRound();
@@ -228,6 +229,7 @@ public class RoguelikeChoicePanel : MonoBehaviour
             int cardId = card.Id;
             btn.onClick.AddListener(() =>
             {
+                AudioManager.Instance?.PlaySound("UI");
                 RemoveCardFromDeck(cardId);
                 currentRound++;
                 ShowRound();

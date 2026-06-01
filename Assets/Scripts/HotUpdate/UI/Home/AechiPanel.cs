@@ -13,7 +13,7 @@ public class AechiPanel : MonoBehaviour
     {
         if (backButton != null)
         {
-            backButton.onClick.AddListener(OnBackClicked);
+            backButton.onClick.AddListener(AudioManager.Instance.PlayOnClick(OnBackClicked));
         }
     }
 

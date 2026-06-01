@@ -93,15 +93,35 @@ public class Enemy : BaseCharacter
             return null;
         }
 
+        BaseCard fallback = null;
         for (int i = 0; i < HandCards.Count; i++)
         {
             BaseCard card = HandCards[i];
-            if (CanUseCard(card, Target))
+            if (!CanUseCard(card, Target))
+            {
+                continue;
+            }
+
+            string desc = card.Description();
+            if (desc != null && desc.Contains("造成") && desc.Contains("伤害") && !desc.Contains("对自身"))
             {
                 if (UseCard(card, Target))
                 {
                     return card.Name;
                 }
+            }
+
+            if (fallback == null)
+            {
+                fallback = card;
+            }
+        }
+
+        if (fallback != null && CanUseCard(fallback, Target))
+        {
+            if (UseCard(fallback, Target))
+            {
+                return fallback.Name;
             }
         }
 

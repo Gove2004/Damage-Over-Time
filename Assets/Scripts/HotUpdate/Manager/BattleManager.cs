@@ -80,6 +80,9 @@ public class BattleManager : MonoSingleton<BattleManager>
         RefreshHand();
         StartPlayerTurn();
         MessageToastManager.Instance.ShowMessage($"Lv.{lv} 战斗开始！");
+
+        string bgmName = Random.value < 0.5f ? "战斗bgm1" : "战斗bgm2";
+        AudioManager.Instance.PlayBGM(bgmName);
     }
 
     public bool RequestPlayCard(BaseCard card)
@@ -258,7 +261,8 @@ public class BattleManager : MonoSingleton<BattleManager>
         Enemy.StartTurn();
 
         int cardsPlayed = 0;
-        while (isBattleActive)
+        const int maxCardsPerTurn = 10;
+        while (isBattleActive && cardsPlayed < maxCardsPerTurn)
         {
             string cardName = Enemy.TryActOnce();
             if (cardName == null)
@@ -344,7 +348,7 @@ public class BattleManager : MonoSingleton<BattleManager>
             {
                 endTurnButton = button;
                 endTurnButton.onClick.RemoveListener(RequestEndTurn);
-                endTurnButton.onClick.AddListener(RequestEndTurn);
+                endTurnButton.onClick.AddListener(AudioManager.Instance.PlayOnClick(RequestEndTurn));
                 break;
             }
         }

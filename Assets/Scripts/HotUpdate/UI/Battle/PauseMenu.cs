@@ -11,9 +11,9 @@ public class PauseMenu : MonoBehaviour
 
     private void Start()
     {
-        pauseButton.onClick.AddListener(OnPauseButtonClicked);
-        overButton.onClick.AddListener(OnOverButtonClicked);
-        resumeButton.onClick.AddListener(OnResumeButtonClicked);
+        pauseButton.onClick.AddListener(AudioManager.Instance.PlayOnClick(OnPauseButtonClicked));
+        overButton.onClick.AddListener(AudioManager.Instance.PlayOnClick(OnOverButtonClicked));
+        resumeButton.onClick.AddListener(AudioManager.Instance.PlayOnClick(OnResumeButtonClicked));
 
         this.gameObject.SetActive(false); // 初始时隐藏暂停菜单界面
     }

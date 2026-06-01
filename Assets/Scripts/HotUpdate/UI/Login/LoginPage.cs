@@ -17,7 +17,7 @@ public class LoginPage : MonoBehaviour
 
     public void Start()
     {
-        startButtonUI.onClick.AddListener(OnLoginButtonClicked);
+        startButtonUI.onClick.AddListener(AudioManager.Instance.PlayOnClick(OnLoginButtonClicked));
 
         TapTapCore.Initialize();
 

@@ -13,8 +13,8 @@ public class BattleResultOverlay : MonoBehaviour
 
     public void Start()
     {
-        restartButton.onClick.AddListener(OnRestartButtonClicked);
-        homeButton.onClick.AddListener(OnHomeButtonClicked);
+        restartButton.onClick.AddListener(AudioManager.Instance.PlayOnClick(OnRestartButtonClicked));
+        homeButton.onClick.AddListener(AudioManager.Instance.PlayOnClick(OnHomeButtonClicked));
         gameObject.SetActive(false);
     }
 
