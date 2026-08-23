@@ -1,0 +1,53 @@
+{
+  "name": "unity-developer-tools",
+  "displayName": "Unity Developer Tools",
+  "description": "AI-powered development toolkit for Unity. Scaffold scripts, look up APIs, write shaders, and build games with best-practice rules for C#, Visual Scripting, and HLSL.",
+  "version": "1.4.8",
+  "author": {
+    "name": "TMHSDigital",
+    "email": "contact@tmhospitalitystrategies.com"
+  },
+  "license": "CC-BY-NC-ND-4.0",
+  "keywords": [
+    "unity",
+    "unity3d",
+    "game-development",
+    "csharp",
+    "shaders",
+    "gamedev",
+    "2d",
+    "3d",
+    "ecs",
+    "mcp"
+  ],
+  "skills": [
+    "skills/project-setup/SKILL.md",
+    "skills/monobehaviour-patterns/SKILL.md",
+    "skills/scriptableobjects/SKILL.md",
+    "skills/physics-2d-3d/SKILL.md",
+    "skills/ui-development/SKILL.md",
+    "skills/shader-development/SKILL.md",
+    "skills/animation-systems/SKILL.md",
+    "skills/audio-systems/SKILL.md",
+    "skills/input-systems/SKILL.md",
+    "skills/networking/SKILL.md",
+    "skills/editor-scripting/SKILL.md",
+    "skills/performance-optimization/SKILL.md",
+    "skills/render-pipeline-detection/SKILL.md",
+    "skills/ecs-dots/SKILL.md",
+    "skills/visual-scripting/SKILL.md",
+    "skills/testing/SKILL.md",
+    "skills/addressables-assets/SKILL.md",
+    "skills/platform-targeting/SKILL.md"
+  ],
+  "rules": [
+    "rules/csharp-unity-conventions.mdc",
+    "rules/monobehaviour-lifecycle.mdc",
+    "rules/performance-rules.mdc",
+    "rules/naming-conventions.mdc",
+    "rules/serialization-rules.mdc",
+    "rules/shader-conventions.mdc",
+    "rules/visual-scripting-conventions.mdc",
+    "rules/security-and-builds.mdc"
+  ]
+}

@@ -19,6 +19,13 @@ public class LoginPage : MonoBehaviour
     {
         startButtonUI.onClick.AddListener(AudioManager.Instance.PlayOnClick(OnLoginButtonClicked));
 
+        if (GameCore.LocalOfflineMode)
+        {
+            loginTipTextUI.text = "本地模式，点击开始游戏";
+            OnLoginSuccess(new TapTapAccount());
+            return;
+        }
+
         TapTapCore.Initialize();
 
         _ = ChackLoginToken();
@@ -52,13 +59,17 @@ public class LoginPage : MonoBehaviour
             return;
         }
 
+        if (GameCore.LocalOfflineMode)
+        {
+            OnLoginSuccess(new TapTapAccount());
+            return;
+        }
+
 #if UNITY_EDITOR
-        // 编辑器模式下直接跳过登录流程
         OnLoginSuccess(new TapTapAccount());
-        // _ = TapTapCore.LoginAsync(OnLoginSuccess, OnLoginCancel, OnLoginFailure); // 确保 SDK 已经初始化
 #else
-        startButtonUI.interactable = false; // 禁用登录按钮，防止重复点击
-        _ = TapTapCore.LoginAsync(OnLoginSuccess, OnLoginCancel, OnLoginFailure); // 确保 SDK 已经初始化
+        startButtonUI.interactable = false;
+        _ = TapTapCore.LoginAsync(OnLoginSuccess, OnLoginCancel, OnLoginFailure);
 #endif
     }
 

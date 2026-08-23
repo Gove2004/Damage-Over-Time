@@ -3,6 +3,11 @@ using TapSDK.Login;
 
 public static class GameCore
 {
+    /// <summary>
+    /// 本地离线模式：跳过 CDN 热更与 TapTap 联网登录。
+    /// </summary>
+    public static bool LocalOfflineMode { get; set; } = true;
+
 #region 账户 Account
 
     public static TapTapAccount account { get; private set; }

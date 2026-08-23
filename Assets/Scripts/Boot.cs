@@ -32,8 +32,7 @@ public class Boot : MonoSingleton<Boot>
 
     private async Task InitializeAsync()
     {
-        string cdnUrl = "http://106.13.26.185:10413/NinthSlimeCard";
-        // string cdnUrl = "http://10.0.2.2:10413/NinthSlimeCard";
+        const string packageName = "DefaultPackage";
 
         try
         {
@@ -43,32 +42,42 @@ public class Boot : MonoSingleton<Boot>
             InitializeCoreServices();
 
             SetState(BootState.UpdatingPackage);
-            await ResCore.PackageWorkflowAsync(
-                new AutoHostPackageConfig
-                (
-                    "DefaultPackage",
-                    cdnUrl
-                ),
-                new UpdateCallbacks
-                {
-                    OnCheckVersionBegin = OnCheckVersionBegin,
-                    OnCheckVersionSuccess = OnCheckVersionSuccess,
-                    OnCheckVersionFailed = OnCheckVersionFailed,
-                    OnUpdateManifestBegin = OnUpdateManifestBegin,
-                    OnUpdateManifestSuccess = OnUpdateManifestSuccess,
-                    OnUpdateManifestFailed = OnUpdateManifestFailed,
-                    OnDownloadBegin = OnDownloadBegin,
-                    OnDownloadFileBegin = OnDownloadFileBegin,
-                    OnDownloadUpdate = OnDownloadUpdate,
-                    OnDownloadError = OnDownloadError,
-                    OnDownloadFinish = OnDownloadFinish
-                }
-            );
+            TipText = "正在加载本地资源...";
+            Progress = 0f;
+
+            bool ok = await ResCore.PackageWorkflowAsync(
+                new AutoOfflinePackageConfig(packageName),
+                CreateUpdateCallbacks());
+
+            if (!ok)
+            {
+                throw new Exception("本地资源包初始化失败，请先在 Unity 中执行 YooAsset 模拟构建/打包。");
+            }
+
+            await ContinueStartupAsync();
         }
         catch (Exception e)
         {
             HandleStartupFailure("初始化失败", e);
         }
+    }
+
+    private UpdateCallbacks CreateUpdateCallbacks()
+    {
+        return new UpdateCallbacks
+        {
+            OnCheckVersionBegin = OnCheckVersionBegin,
+            OnCheckVersionSuccess = OnCheckVersionSuccess,
+            OnCheckVersionFailed = OnCheckVersionFailed,
+            OnUpdateManifestBegin = OnUpdateManifestBegin,
+            OnUpdateManifestSuccess = OnUpdateManifestSuccess,
+            OnUpdateManifestFailed = OnUpdateManifestFailed,
+            OnDownloadBegin = OnDownloadBegin,
+            OnDownloadFileBegin = OnDownloadFileBegin,
+            OnDownloadUpdate = OnDownloadUpdate,
+            OnDownloadError = OnDownloadError,
+            OnDownloadFinish = OnDownloadFinish
+        };
     }
 
     private void InitializeCoreServices()
@@ -93,13 +102,32 @@ public class Boot : MonoSingleton<Boot>
         {
             SetState(BootState.LoadingHotUpdate);
             TipText = "正在加载热更新...";
+            Progress = 0.9f;
             await LoadHotUpdateAsync();
 
             SetState(BootState.LoadingGameServices);
             TipText = "正在初始化游戏服务...";
+            Progress = 0.95f;
             LoadAsset();
 
-            ResCore.LoadSceneAsync("Login");
+            TipText = "正在进入游戏...";
+            var sceneHandle = ResCore.LoadSceneAsync("Login");
+            if (sceneHandle == null)
+            {
+                throw new Exception("无法加载 Login 场景：资源包未就绪。");
+            }
+
+            while (!sceneHandle.IsDone)
+            {
+                await Task.Yield();
+            }
+
+            if (sceneHandle.Status != EOperationStatus.Succeed)
+            {
+                throw new Exception($"Login 场景加载失败：{sceneHandle.LastError}");
+            }
+
+            Progress = 1f;
         }
         catch (Exception e)
         {
@@ -129,19 +157,27 @@ public class Boot : MonoSingleton<Boot>
 
     public void OnCheckVersionBegin()
     {
-        TipText = "正在检查版本...";
+        TipText = "正在加载本地资源...";
         Progress = 0f;
     }
 
-    public void OnCheckVersionSuccess(string version) => TipText = $"检查版本成功，版本号: {version}.";
+    public void OnCheckVersionSuccess(string version) => TipText = $"本地资源就绪，版本: {version}";
 
-    public void OnCheckVersionFailed(string error) => TipText = $"检查版本失败，错误信息: {error}.";
+    public void OnCheckVersionFailed(string error)
+    {
+        TipText = $"本地资源检查失败：{error}";
+        Debug.LogWarning($"[Boot] Local package version check failed: {error}");
+    }
 
-    public void OnUpdateManifestBegin() => TipText = "正在更新清单...";
+    public void OnUpdateManifestBegin() => TipText = "正在加载资源清单...";
 
-    public void OnUpdateManifestSuccess() => TipText = "更新清单成功。";
+    public void OnUpdateManifestSuccess() => TipText = "资源清单就绪。";
 
-    public void OnUpdateManifestFailed(string error) => TipText = $"更新清单失败，错误信息: {error}.";
+    public void OnUpdateManifestFailed(string error)
+    {
+        TipText = $"资源清单加载失败：{error}";
+        Debug.LogWarning($"[Boot] Local manifest load failed: {error}");
+    }
 
     public void OnDownloadBegin(int totalCount, long totalBytes) => TipText = $"开始下载，文件数量: {totalCount}, 总大小: {totalBytes / 1024 / 1024:F2} MB.";
 
@@ -153,15 +189,24 @@ public class Boot : MonoSingleton<Boot>
 
     public void OnDownloadFinish(DownloaderFinishData data)
     {
-        TipText = "下载完成...";
+        TipText = data.Succeed ? "本地资源准备完成..." : "资源准备未完全成功，继续启动...";
         Progress = 1f;
-        _ = ContinueStartupAsync();
     }
 
     public async Task LoadHotUpdateAsync()
     {
-        await HotfixCore.LoadAotMetadataAsync(AOTGenericReferences.PatchedAOTAssemblyList);
-        await HotfixCore.LoadHotfixAssemblyAsync("HotUpdate.dll");
+#if !UNITY_EDITOR
+        if (!await HotfixCore.LoadAotMetadataAsync(AOTGenericReferences.PatchedAOTAssemblyList))
+        {
+            throw new Exception("AOT 元数据加载失败。");
+        }
+#endif
+
+        var assembly = await HotfixCore.LoadHotfixAssemblyAsync("HotUpdate.dll");
+        if (assembly == null)
+        {
+            throw new Exception("热更程序集 HotUpdate 加载失败。");
+        }
     }
 
     public void LoadAsset()
@@ -230,7 +275,8 @@ public class Boot : MonoSingleton<Boot>
     private void HandleStartupFailure(string message, Exception exception)
     {
         state = BootState.Failed;
-        TipText = message;
+        Progress = 1f;
+        TipText = $"{message}：{exception.Message}";
         Debug.LogException(exception);
         LogCore.Error(nameof(Boot), $"{message}: {exception}");
     }

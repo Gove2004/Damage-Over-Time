@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "unity-dev-tools": {
+      "command": "C:\\Users\\LWX\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "args": ["mcp-server/server.py"],
+      "env": {
+        "UNITY_DATA_PATH": "./mcp-server/data"
+      }
+    },
+    "unityMCP": {
+      "url": "http://127.0.0.1:8080/mcp",
+      "type": "http"
+    }
+  }
+}

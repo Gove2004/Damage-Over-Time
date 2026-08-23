@@ -1,0 +1,23 @@
+---
+title: Performance rules
+description: Performance optimization rules for Unity
+globs: ["**/*.cs"]
+alwaysApply: true
+standards-version: 1.10.0
+---
+
+# Unity performance rules
+
+- WARN: GetComponent<T>() called inside Update, FixedUpdate, or LateUpdate. Cache in Awake instead.
+- WARN: FindObjectOfType or FindObjectsOfType in any code. Use FindFirstObjectByType or FindObjectsByType instead.
+- WARN: Find, FindObjectOfType, or FindObjectsOfType in runtime code. Cache references or use events.
+- WARN: String concatenation with + in Update. Use StringBuilder or TextMeshPro.SetText.
+- WARN: new List, new Dictionary, or any heap allocation inside Update. Pre-allocate and reuse.
+- WARN: LINQ queries (Where, Select, OrderBy) in per-frame code. Use manual loops.
+- WARN: Instantiate/Destroy called frequently. Use object pooling instead.
+- WARN: Camera.main accessed repeatedly. Cache it: Camera.main uses FindGameObjectWithTag internally.
+- WARN: SendMessage or BroadcastMessage. Use direct references, events, or interfaces.
+- WARN: Resources.Load in runtime code. Use Addressables.LoadAssetAsync instead.
+- INFO: Use the Profiler to verify actual bottlenecks before optimizing.
+- INFO: Use Burst compiler and Jobs for CPU-intensive work.
+- INFO: Use NonAlloc physics methods (RaycastNonAlloc, OverlapSphereNonAlloc) to avoid per-frame allocations.
