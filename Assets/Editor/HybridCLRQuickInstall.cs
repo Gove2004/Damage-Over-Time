@@ -11,6 +11,12 @@ public static class HybridCLRQuickInstall
     [MenuItem("HybridCLR/Generate All (Pre-Build)", priority = 64)]
     public static void GenerateAllMenu()
     {
+        if (!Il2CppModuleChecker.IsWindowsIl2CppModuleInstalled())
+        {
+            Il2CppModuleChecker.OpenInstallPage();
+            return;
+        }
+
         EditorUtility.DisplayProgressBar("HybridCLR", "Generate/All (compile + AOT + MethodBridge)...", 0.1f);
         try
         {
